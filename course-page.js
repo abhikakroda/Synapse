@@ -326,6 +326,7 @@ if (!courseKey) {
         <a class="btn btn-primary" href="index.html#contact">${course.cta}</a>
         <span class="coming-soon-badge">${course.status}</span>
       </div>
+      ${courseKey === "ai-ml" ? `<div class="countdown-banner"><span class="countdown-label">Batch starts in</span><div class="countdown-timer" id="courseCountdown"></div></div>` : ""}
     </div>
     <figure class="course-poster">
       <img src="${course.poster}" alt="${course.title} course poster" />
@@ -406,3 +407,21 @@ nav?.addEventListener("click", (event) => {
     menuButton?.setAttribute("aria-expanded", "false");
   }
 });
+
+// Countdown timer for AI & ML batch
+(function initCountdown() {
+  const el = document.getElementById("courseCountdown");
+  if (!el) return;
+  const target = new Date("2026-06-20T00:00:00+05:30").getTime();
+  function update() {
+    const diff = target - Date.now();
+    if (diff <= 0) { el.innerHTML = "<span class='countdown-label'>Batch is LIVE!</span>"; return; }
+    const d = Math.floor(diff / 86400000);
+    const h = Math.floor((diff % 86400000) / 3600000);
+    const m = Math.floor((diff % 3600000) / 60000);
+    const s = Math.floor((diff % 60000) / 1000);
+    el.innerHTML = `<div class="cd-unit"><span class="cd-num">${d}</span><span class="cd-lbl">Days</span></div><div class="cd-unit"><span class="cd-num">${h}</span><span class="cd-lbl">Hrs</span></div><div class="cd-unit"><span class="cd-num">${m}</span><span class="cd-lbl">Min</span></div><div class="cd-unit"><span class="cd-num">${s}</span><span class="cd-lbl">Sec</span></div>`;
+  }
+  update();
+  setInterval(update, 1000);
+})();
