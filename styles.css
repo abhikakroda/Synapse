@@ -3309,6 +3309,12 @@ body {
   color: #4e505a !important;
 }
 
+.workshop-reward {
+  color: #155f3c !important;
+  background: rgba(222, 247, 229, 0.95) !important;
+  border-color: rgba(21, 95, 60, 0.18) !important;
+}
+
 .workshop-cta-card {
   padding: clamp(32px, 4vw, 56px);
   background: rgba(255, 255, 255, 0.48);
