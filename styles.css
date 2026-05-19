@@ -1146,9 +1146,10 @@ body {
 
 .programs-panel {
   display: grid;
-  grid-template-columns: minmax(300px, 0.85fr) minmax(540px, 1.65fr);
-  gap: clamp(46px, 7vw, 110px);
-  align-items: center;
+  grid-template-columns: 1fr;
+  gap: 0;
+  max-width: 680px;
+  margin-inline: auto;
 }
 
 .panel-label {
@@ -2946,6 +2947,522 @@ body {
   .all-courses-hero > p,
   .all-course-body > p {
     font-size: 17px;
+  }
+}
+
+/* ===== APPLE LIQUID GLASS EFFECTS ===== */
+
+:root {
+  --glass-bg: rgba(255, 255, 255, 0.42);
+  --glass-border: rgba(255, 255, 255, 0.58);
+  --glass-highlight: rgba(255, 255, 255, 0.82);
+  --glass-shadow: 0 8px 32px rgba(31, 38, 56, 0.08), 0 2px 6px rgba(31, 38, 56, 0.04);
+  --glass-blur: blur(40px) saturate(1.8);
+  --glass-inner-glow: inset 0 1px 0 rgba(255, 255, 255, 0.9), inset 0 -1px 0 rgba(255, 255, 255, 0.2);
+}
+
+/* Header — floating liquid glass pill */
+.site-header {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-inner-glow), var(--glass-shadow);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+}
+
+/* Navigation dropdown — liquid glass panel */
+.nav.open {
+  background: rgba(255, 255, 255, 0.52);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-inner-glow), 0 24px 64px rgba(31, 38, 56, 0.14);
+  backdrop-filter: blur(48px) saturate(1.9);
+  -webkit-backdrop-filter: blur(48px) saturate(1.9);
+}
+
+/* CTA buttons — glass pill style */
+.nav-cta {
+  background: rgba(255, 255, 255, 0.38) !important;
+  border: 1px solid var(--glass-border) !important;
+  box-shadow: var(--glass-inner-glow), 0 4px 12px rgba(31, 38, 56, 0.06);
+  backdrop-filter: blur(20px) saturate(1.6);
+  -webkit-backdrop-filter: blur(20px) saturate(1.6);
+}
+
+/* Hero kicker — glass chip */
+.hero-kicker {
+  background: rgba(255, 255, 255, 0.36);
+  border: 1px solid var(--glass-border) !important;
+  border-radius: 999px;
+  box-shadow: var(--glass-inner-glow), 0 4px 16px rgba(31, 38, 56, 0.05);
+  backdrop-filter: blur(24px) saturate(1.6);
+  -webkit-backdrop-filter: blur(24px) saturate(1.6);
+}
+
+/* Buttons — liquid glass depth */
+.btn-secondary {
+  background: rgba(255, 255, 255, 0.44);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-inner-glow), 0 6px 20px rgba(31, 38, 56, 0.07);
+  backdrop-filter: blur(20px) saturate(1.5);
+  -webkit-backdrop-filter: blur(20px) saturate(1.5);
+}
+
+.btn-primary {
+  box-shadow: var(--glass-inner-glow), 0 12px 32px rgba(36, 37, 60, 0.22);
+}
+
+/* Trust strip — glass bar */
+.trust-strip {
+  background: rgba(255, 255, 255, 0.48);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-inner-glow), var(--glass-shadow);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+}
+
+/* Cards — liquid glass surfaces */
+.answer-grid article,
+.feature-list article,
+.resource-card,
+.course-highlights article,
+.syllabus-panel,
+.project-list article,
+.who-list li,
+.outcomes-list li {
+  background: rgba(255, 255, 255, 0.48);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-inner-glow), var(--glass-shadow);
+  backdrop-filter: blur(32px) saturate(1.6);
+  -webkit-backdrop-filter: blur(32px) saturate(1.6);
+  transition: transform 260ms ease, box-shadow 260ms ease;
+}
+
+.answer-grid article:hover,
+.feature-list article:hover,
+.resource-card:hover,
+.course-highlights article:hover,
+.project-list article:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--glass-inner-glow), 0 16px 48px rgba(31, 38, 56, 0.12);
+}
+
+/* Sarvam panel — deep glass container */
+.sarvam-panel {
+  background: rgba(255, 255, 255, 0.52);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-inner-glow), 0 32px 80px rgba(31, 38, 56, 0.1);
+  backdrop-filter: blur(48px) saturate(1.8);
+  -webkit-backdrop-filter: blur(48px) saturate(1.8);
+}
+
+/* Program feature inner card */
+.program-feature {
+  background: rgba(255, 255, 255, 0.32);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7), 0 8px 24px rgba(31, 38, 56, 0.06);
+  backdrop-filter: blur(24px) saturate(1.4);
+  -webkit-backdrop-filter: blur(24px) saturate(1.4);
+}
+
+/* Certificate card — premium glass */
+.certificate-card {
+  background: rgba(255, 255, 255, 0.44);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-inner-glow), 0 24px 64px rgba(31, 38, 56, 0.1);
+  backdrop-filter: blur(44px) saturate(1.8);
+  -webkit-backdrop-filter: blur(44px) saturate(1.8);
+}
+
+/* Lead form — glass panel */
+.lead-form {
+  background: rgba(255, 255, 255, 0.42);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-inner-glow), var(--glass-shadow);
+  backdrop-filter: blur(36px) saturate(1.7);
+  -webkit-backdrop-filter: blur(36px) saturate(1.7);
+}
+
+.lead-form input,
+.lead-form select,
+.lead-form textarea {
+  background: rgba(255, 255, 255, 0.52);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow: inset 0 1px 2px rgba(31, 38, 56, 0.04);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.lead-form input:focus,
+.lead-form select:focus,
+.lead-form textarea:focus {
+  border-color: rgba(52, 58, 164, 0.4);
+  box-shadow: 0 0 0 4px rgba(52, 58, 164, 0.08), inset 0 1px 2px rgba(31, 38, 56, 0.04);
+}
+
+/* Mentor grid — glass cards */
+.mentor-grid article {
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 8px 24px rgba(0, 0, 0, 0.08);
+  backdrop-filter: blur(28px) saturate(1.5);
+  -webkit-backdrop-filter: blur(28px) saturate(1.5);
+}
+
+/* Launch band — frosted glass dark */
+.launch-band {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12), 0 24px 64px rgba(31, 38, 56, 0.18);
+}
+
+/* Live card — floating glass chip */
+.live-card {
+  background: rgba(255, 255, 255, 0.52);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-inner-glow), 0 12px 36px rgba(31, 38, 56, 0.12);
+  backdrop-filter: blur(36px) saturate(1.8);
+  -webkit-backdrop-filter: blur(36px) saturate(1.8);
+}
+
+/* Course page cards */
+.all-course-card,
+.course-poster {
+  background: rgba(255, 255, 255, 0.48);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-inner-glow), 0 20px 56px rgba(31, 38, 56, 0.09);
+  backdrop-filter: blur(36px) saturate(1.7);
+  -webkit-backdrop-filter: blur(36px) saturate(1.7);
+}
+
+/* Course link hover — glass highlight */
+.course-link:hover,
+.course-link:focus-visible {
+  background: rgba(255, 255, 255, 0.48);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7), 0 4px 12px rgba(31, 38, 56, 0.05);
+}
+
+/* Program icon — glass circle */
+.program-icon {
+  background: rgba(255, 255, 255, 0.62);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-inner-glow), 0 4px 12px rgba(31, 38, 56, 0.05);
+  backdrop-filter: blur(16px) saturate(1.4);
+  -webkit-backdrop-filter: blur(16px) saturate(1.4);
+}
+
+/* Gradient card — glass overlay */
+.gradient-card {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), 0 16px 48px rgba(31, 38, 56, 0.12);
+}
+
+/* Coming soon badge — glass pill */
+.coming-soon-badge {
+  background: rgba(255, 255, 255, 0.44);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-inner-glow), 0 4px 12px rgba(31, 38, 56, 0.05);
+  backdrop-filter: blur(20px) saturate(1.5);
+  -webkit-backdrop-filter: blur(20px) saturate(1.5);
+}
+
+/* Meta pills — tiny glass chips */
+.course-meta-row span,
+.course-card-highlights span,
+.course-meta-pills span {
+  background: rgba(255, 255, 255, 0.48);
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* Workshop page */
+.workshop-page-hero {
+  padding-top: clamp(140px, 14vh, 200px);
+  padding-bottom: 0;
+}
+
+.workshop-page-hero h1 {
+  margin: 0;
+  color: #24242a;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(40px, 4.8vw, 66px);
+  font-weight: 400;
+  line-height: 1.04;
+}
+
+.workshops-list-section {
+  padding-top: 32px;
+}
+
+.workshops-list-title {
+  margin: 0 0 24px;
+  color: #24242a;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(24px, 2.4vw, 34px);
+  font-weight: 400;
+}
+
+.workshop-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.workshop-actions .btn {
+  width: auto;
+}
+
+.workshop-past {
+  opacity: 0.7;
+}
+
+.workshop-yt {
+  color: #c4302b !important;
+}
+
+.workshop-cta-section {
+  padding-top: 0;
+}
+
+.workshop-details {
+  margin-top: 18px;
+  border-top: 1px solid rgba(34, 35, 49, 0.08);
+  padding-top: 14px;
+}
+
+.workshop-details summary {
+  cursor: pointer;
+  color: #343aa4;
+  font-weight: 800;
+  font-size: 14px;
+  letter-spacing: 0.5px;
+  list-style: none;
+  user-select: none;
+}
+
+.workshop-details summary::-webkit-details-marker {
+  display: none;
+}
+
+.workshop-details summary::before {
+  content: "＋ ";
+}
+
+.workshop-details[open] summary::before {
+  content: "－ ";
+}
+
+.workshop-details-body {
+  margin-top: 18px;
+}
+
+.workshop-details-body h4 {
+  margin: 20px 0 10px;
+  color: #24242a;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.workshop-details-body h4:first-child {
+  margin-top: 0;
+}
+
+.workshop-details-body ul {
+  margin: 0;
+  padding-left: 20px;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.8;
+}
+
+.workshop-resources {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.resource-link {
+  display: inline-flex;
+  align-items: center;
+  padding: 10px 16px;
+  background: rgba(255, 255, 255, 0.48);
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #34364f;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  transition: background 180ms ease;
+}
+
+.resource-link:hover {
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.workshop-time {
+  color: #4e505a !important;
+}
+
+.workshop-cta-card {
+  padding: clamp(32px, 4vw, 56px);
+  background: rgba(255, 255, 255, 0.48);
+  border: 1px solid var(--glass-border);
+  border-radius: 28px;
+  box-shadow: var(--glass-inner-glow), var(--glass-shadow);
+  backdrop-filter: blur(32px) saturate(1.6);
+  -webkit-backdrop-filter: blur(32px) saturate(1.6);
+  text-align: center;
+}
+
+.workshop-cta-card h2 {
+  margin: 0;
+  color: #24242a;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(28px, 3vw, 42px);
+  font-weight: 400;
+}
+
+.workshop-cta-card p {
+  margin: 14px 0 24px;
+  color: var(--muted);
+  font-size: clamp(16px, 1.3vw, 20px);
+}
+
+@media (max-width: 768px) {
+  .workshop-page-hero {
+    padding-top: 100px;
+  }
+
+  .workshop-page-hero h1 {
+    font-size: clamp(32px, 10vw, 44px);
+  }
+
+  .workshop-actions {
+    flex-direction: column;
+  }
+
+  .workshop-actions .btn {
+    width: 100%;
+  }
+}
+
+/* ===== WORKSHOPS SECTION ===== */
+
+#workshops {
+  scroll-margin-top: 112px;
+}
+
+.workshops-grid {
+  display: grid;
+  gap: 18px;
+  margin-top: 42px;
+}
+
+.workshop-card {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 28px;
+  padding: 28px;
+  background: rgba(255, 255, 255, 0.48);
+  border: 1px solid var(--glass-border);
+  border-radius: 28px;
+  box-shadow: var(--glass-inner-glow), var(--glass-shadow);
+  backdrop-filter: blur(32px) saturate(1.6);
+  -webkit-backdrop-filter: blur(32px) saturate(1.6);
+}
+
+.workshop-date {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 90px;
+  padding: 18px 12px;
+  background: linear-gradient(180deg, #37384f, #28293c);
+  border-radius: 18px;
+  color: #ffffff;
+  text-align: center;
+}
+
+.workshop-date span {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  opacity: 0.8;
+}
+
+.workshop-date strong {
+  font-size: 32px;
+  font-weight: 900;
+  line-height: 1.2;
+}
+
+.workshop-info h3 {
+  margin: 0;
+  color: #24242a;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(24px, 2.4vw, 36px);
+  font-weight: 400;
+  line-height: 1.1;
+}
+
+.workshop-info p {
+  margin: 12px 0 0;
+  color: var(--muted);
+  font-size: clamp(15px, 1.2vw, 18px);
+  line-height: 1.6;
+}
+
+.workshop-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 16px 0 20px;
+}
+
+.workshop-meta span {
+  padding: 8px 14px;
+  background: rgba(255, 255, 255, 0.48);
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 800;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+
+.workshop-host {
+  color: #343aa4;
+}
+
+.workshop-platform {
+  color: #c4302b;
+}
+
+.workshop-card .btn {
+  width: fit-content;
+}
+
+@media (max-width: 768px) {
+  .workshop-card {
+    grid-template-columns: 1fr;
+    gap: 18px;
+    padding: 18px;
+  }
+
+  .workshop-date {
+    width: 100%;
+    flex-direction: row;
+    gap: 8px;
+    padding: 14px;
+    border-radius: 14px;
+  }
+
+  .workshop-date strong {
+    font-size: 24px;
+  }
+
+  .workshop-card .btn {
+    width: 100%;
   }
 }
 

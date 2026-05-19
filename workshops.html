@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Free live workshops by Synapse mentors on AI, cybersecurity, IoT and placement skills. Join on YouTube Live and Google Meet." />
+    <meta name="theme-color" content="#111827" />
+    <title>Workshops | Synapse</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="index.html" aria-label="Synapse home">
+        <span>Synapse</span>
+      </a>
+      <button class="menu-toggle" type="button" aria-label="Open navigation" aria-expanded="false">
+        <span></span>
+        <span></span>
+      </button>
+      <nav class="nav" aria-label="Main navigation">
+        <a href="index.html#programs">Platform</a>
+        <a href="workshops.html">Workshops</a>
+        <a href="course.html">Course</a>
+        <a href="index.html#resources">Resources</a>
+        <a href="index.html#about">About Us</a>
+        <a class="nav-internship" href="course.html?course=ai-ml">Summer Internship</a>
+        <a class="nav-cta" href="index.html#contact">Contact Us</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="section-pad workshop-page-hero">
+        <div class="section-heading">
+          <p class="section-label">Workshops</p>
+          <h1>Free live workshops every week.</h1>
+          <p>Learn trending topics with Synapse mentors. Join on YouTube Live or Google Meet — no cost, no signup wall.</p>
+        </div>
+      </section>
+
+      <section class="section-pad workshops-list-section">
+        <h2 class="workshops-list-title">Upcoming Workshops</h2>
+        <div class="workshops-grid">
+
+          <article class="workshop-card">
+            <div class="workshop-date">
+              <span>SUN</span>
+              <strong>25</strong>
+              <span>May</span>
+            </div>
+            <div class="workshop-info">
+              <h3>Agentic AI & Claude AI</h3>
+              <p>Build autonomous AI agents using Claude — from prompt design to tool use and multi-step reasoning.</p>
+              <div class="workshop-meta">
+                <span class="workshop-host">By Udhay</span>
+                <span class="workshop-platform workshop-yt">▶ YouTube Live</span>
+                <span class="workshop-time">Sunday, 4:00 PM IST</span>
+              </div>
+              <div class="workshop-actions">
+                <a class="btn btn-primary" href="#" target="_blank">Join YouTube Live</a>
+                <a class="btn btn-secondary" href="#" target="_blank">Join Google Meet</a>
+              </div>
+              <details class="workshop-details">
+                <summary>See more details</summary>
+                <div class="workshop-details-body">
+                  <h4>What you'll learn</h4>
+                  <ul>
+                    <li>What are AI agents and why they matter in 2026</li>
+                    <li>Claude AI tool use, multi-step reasoning, and MCP</li>
+                    <li>Building your first agentic workflow from scratch</li>
+                    <li>Real-world use cases: coding agents, research agents, automation</li>
+                  </ul>
+                  <h4>Prerequisites</h4>
+                  <ul>
+                    <li>Basic understanding of AI/ML concepts</li>
+                    <li>Laptop with internet connection</li>
+                    <li>No coding experience required</li>
+                  </ul>
+                  <h4>Resources & Slides</h4>
+                  <div class="workshop-resources">
+                    <a href="#" class="resource-link">📄 Workshop Slides (PDF)</a>
+                    <a href="#" class="resource-link">📝 Hands-on Notebook</a>
+                    <a href="#" class="resource-link">🔗 Claude AI Documentation</a>
+                    <a href="#" class="resource-link">💬 WhatsApp Group</a>
+                  </div>
+                </div>
+              </details>
+            </div>
+          </article>
+
+        </div>
+
+        <h2 class="workshops-list-title" style="margin-top: 64px;">Past Workshops</h2>
+        <div class="workshops-grid">
+          <article class="workshop-card workshop-past">
+            <div class="workshop-date">
+              <span>SUN</span>
+              <strong>18</strong>
+              <span>May</span>
+            </div>
+            <div class="workshop-info">
+              <h3>Introduction to Prompt Engineering</h3>
+              <p>Basics of writing effective prompts for ChatGPT, Claude, and Gemini.</p>
+              <div class="workshop-meta">
+                <span class="workshop-host">By Udhay</span>
+                <span class="workshop-platform workshop-yt">▶ YouTube</span>
+              </div>
+              <div class="workshop-actions">
+                <a class="btn btn-secondary" href="#" target="_blank">Watch Recording</a>
+              </div>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="section-pad workshop-cta-section">
+        <div class="workshop-cta-card">
+          <h2>Want to suggest a workshop topic?</h2>
+          <p>Tell us what you want to learn next — we'll plan it for the upcoming Sunday.</p>
+          <a class="btn btn-primary" href="index.html#contact">Suggest a Topic</a>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div>
+        <a class="brand" href="index.html">
+          <span>Synapse</span>
+        </a>
+        <p>Internship + career acceleration for ambitious students.</p>
+      </div>
+      <div class="footer-links">
+        <a href="index.html#programs">Courses</a>
+        <a href="workshops.html">Workshops</a>
+        <a href="index.html#contact">Contact</a>
+      </div>
+    </footer>
+
+    <script>
+      const menuButton = document.querySelector(".menu-toggle");
+      const nav = document.querySelector(".nav");
+      menuButton?.addEventListener("click", () => {
+        const isOpen = nav.classList.toggle("open");
+        document.body.classList.toggle("menu-open", isOpen);
+        menuButton.setAttribute("aria-expanded", String(isOpen));
+      });
+      nav?.addEventListener("click", (e) => {
+        if (e.target instanceof HTMLAnchorElement) {
+          nav.classList.remove("open");
+          document.body.classList.remove("menu-open");
+          menuButton?.setAttribute("aria-expanded", "false");
+        }
+      });
+    </script>
+  </body>
+</html>
