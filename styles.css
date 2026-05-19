@@ -4534,23 +4534,37 @@ body {
   }
 
   .certificate-card {
-    min-height: 320px;
-    padding: 24px 18px;
+    min-height: auto;
+    padding: 20px 16px;
     border-radius: 22px;
   }
 
+  .certificate-card::before {
+    inset: 12px;
+  }
+
   .certificate-card h3 {
-    font-size: 28px;
+    font-size: 24px;
   }
 
   .certificate-card h4 {
-    font-size: 20px;
+    font-size: 18px;
+  }
+
+  .certificate-card > span {
+    font-size: 14px;
+  }
+
+  .certificate-card p {
+    font-size: 12px;
   }
 
   .cert-footer {
     flex-direction: column;
-    gap: 8px;
-    margin-top: 32px;
+    align-items: flex-start;
+    gap: 6px;
+    margin-top: 24px;
+    font-size: 12px;
   }
 
   /* Mentors */
