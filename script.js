@@ -247,7 +247,7 @@ function fireConfetti() {
 
 // Google Sheets backend
 function submitToSheet(data) {
-  const SHEET_URL = "https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec";
+  const SHEET_URL = "https://script.google.com/macros/s/AKfycbx_iBGTnWFc3602w0YyAzE133dPIi1knjX5Lxz832SsKrIlFzsqmgICYvYoTrIQeh0/exec";
   fetch(SHEET_URL, { method: "POST", mode: "no-cors", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) }).catch(() => {});
 }
 
