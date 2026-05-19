@@ -480,33 +480,50 @@ nav?.addEventListener("click", (event) => {
     }
   });
 
-  payBtn.addEventListener("click", () => {
+  payBtn.addEventListener("click", async () => {
+    // Require login first
+    if (!window.Clerk) { alert("Loading... try again"); return; }
+    try { await window.Clerk.load(); } catch(e) {}
+    if (!window.Clerk.user) {
+      window.Clerk.openSignIn();
+      // Wait for sign in then retry
+      window.Clerk.addListener(({ user }) => { if (user) payBtn.click(); });
+      return;
+    }
+
+    const user = window.Clerk.user;
+    const phone = user.primaryPhoneNumber?.phoneNumber || user.primaryEmailAddress?.emailAddress || "";
+    const name = user.firstName || user.fullName || "";
+
     if (price === 0) {
-      const user = JSON.parse(localStorage.getItem("synapse_user") || "{}");
       const purchases = JSON.parse(localStorage.getItem("synapse_purchases") || "[]");
       purchases.push({ title: "AI & ML", date: new Date().toLocaleDateString("en-IN"), paymentId: "FREE-COUPON" });
       localStorage.setItem("synapse_purchases", JSON.stringify(purchases));
-      if (typeof savePurchase === "function") savePurchase(user.phone || "", "AI & ML", "FREE-COUPON", 0);
+      localStorage.setItem("synapse_user", JSON.stringify({ phone, name }));
+      if (typeof savePurchase === "function") savePurchase(phone, "AI & ML", "FREE-COUPON", 0);
+      if (typeof signUp === "function") signUp(phone, name, "");
       alert("🎉 Congratulations! You have been enrolled for free.");
       window.location.href = "dashboard.html";
       return;
     }
+
     const options = {
       key: "rzp_test_SrFYeqYJM1Ef3u",
       amount: price * 100,
       currency: "INR",
       name: "Synapse",
       description: "AI & ML 45-Day Internship",
+      prefill: { name: name, contact: phone },
       handler: function(response) {
-        const user = JSON.parse(localStorage.getItem("synapse_user") || "{}");
         const purchases = JSON.parse(localStorage.getItem("synapse_purchases") || "[]");
         purchases.push({ title: "AI & ML", date: new Date().toLocaleDateString("en-IN"), paymentId: response.razorpay_payment_id });
         localStorage.setItem("synapse_purchases", JSON.stringify(purchases));
-        if (typeof savePurchase === "function") savePurchase(user.phone || "", "AI & ML", response.razorpay_payment_id, price);
+        localStorage.setItem("synapse_user", JSON.stringify({ phone, name }));
+        if (typeof savePurchase === "function") savePurchase(phone, "AI & ML", response.razorpay_payment_id, price);
+        if (typeof signUp === "function") signUp(phone, name, "");
         alert("Payment successful! ID: " + response.razorpay_payment_id);
         window.location.href = "dashboard.html";
       },
-      prefill: { name: "", email: "", contact: "" },
       theme: { color: "#343aa4" }
     };
     const rzp = new Razorpay(options);
