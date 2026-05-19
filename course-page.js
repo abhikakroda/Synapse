@@ -435,7 +435,7 @@ nav?.addEventListener("click", (event) => {
   setInterval(update, 1000);
 })();
 
-// Coupon & Stripe Payment
+// Coupon & Razorpay Payment
 (function initPayment() {
   const couponInput = document.getElementById("couponInput");
   const couponBtn = document.getElementById("applyCoupon");
@@ -448,7 +448,8 @@ nav?.addEventListener("click", (event) => {
     "STAY10": { discount: 10, type: "percent" },
     "SYNAPSE100": { discount: 100, type: "flat" },
     "EARLY50": { discount: 50, type: "flat" },
-    "REFER100": { discount: 100, type: "flat" }
+    "REFER100": { discount: 100, type: "flat" },
+    "MANSOOR": { discount: 100, type: "percent" }
   };
 
   couponBtn?.addEventListener("click", () => {
@@ -460,31 +461,36 @@ nav?.addEventListener("click", (event) => {
       } else {
         price = 999 - coupon.discount;
       }
+      if (price <= 0) price = 0;
       couponStatus.textContent = `✓ Coupon applied! You save ₹${999 - price}`;
       couponStatus.style.color = "#155f3c";
-      payBtn.textContent = `Pay ₹${price}`;
+      payBtn.textContent = price === 0 ? "Enroll Free" : `Pay ₹${price}`;
     } else {
       couponStatus.textContent = "✗ Invalid coupon code";
       couponStatus.style.color = "#d32f2f";
     }
   });
 
-  payBtn.addEventListener("click", async () => {
-    payBtn.textContent = "Redirecting...";
-    payBtn.disabled = true;
-    try {
-      // Stripe Checkout - replace with your actual Stripe publishable key and price ID
-      const stripe = Stripe("pk_live_YOUR_STRIPE_KEY");
-      const { error } = await stripe.redirectToCheckout({
-        lineItems: [{ price: "price_YOUR_PRICE_ID", quantity: 1 }],
-        mode: "payment",
-        successUrl: window.location.origin + "/course.html?course=ai-ml&paid=1",
-        cancelUrl: window.location.href
-      });
-      if (error) throw error;
-    } catch (e) {
-      // Fallback: redirect to contact
-      window.location.href = "https://wa.me/918803250878?text=Hi%20Synapse%2C%20I%20want%20to%20pay%20for%20AI%20%26%20ML%20internship";
+  payBtn.addEventListener("click", () => {
+    if (price === 0) {
+      alert("🎉 Congratulations! You have been enrolled for free.");
+      window.location.href = "https://wa.me/918803250878?text=Hi%20Synapse%2C%20I%20used%20a%20100%25%20off%20coupon%20for%20AI%20%26%20ML%20internship";
+      return;
     }
+    const options = {
+      key: "rzp_test_SrFYeqYJM1Ef3u",
+      amount: price * 100,
+      currency: "INR",
+      name: "Synapse",
+      description: "AI & ML 45-Day Internship",
+      handler: function(response) {
+        alert("Payment successful! ID: " + response.razorpay_payment_id);
+        window.location.href = "https://wa.me/918803250878?text=Hi%20Synapse%2C%20I%20paid%20for%20AI%20%26%20ML.%20Payment%20ID%3A%20" + response.razorpay_payment_id;
+      },
+      prefill: { name: "", email: "", contact: "" },
+      theme: { color: "#343aa4" }
+    };
+    const rzp = new Razorpay(options);
+    rzp.open();
   });
 })();
