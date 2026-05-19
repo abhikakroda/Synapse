@@ -513,3 +513,35 @@ nav?.addEventListener("click", (event) => {
     rzp.open();
   });
 })();
+
+// Auth button on course page
+(function initAuthBtn() {
+  const authBtn = document.getElementById("navAuth");
+  if (!authBtn) return;
+  const user = JSON.parse(localStorage.getItem("synapse_user") || "null");
+  if (user) {
+    authBtn.textContent = "My Batch";
+    authBtn.href = "dashboard.html";
+  } else {
+    authBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      const o = document.createElement("div");
+      o.className = "exit-popup-overlay";
+      o.innerHTML = `<div class="exit-popup"><button class="exit-close" aria-label="Close">✕</button><h3>Login to Synapse</h3><p>Enter your phone number to access your batch.</p><form class="email-popup-form" id="loginForm"><input type="tel" placeholder="+91 98765 43210" required /><input type="text" placeholder="Your name" required /><button class="btn btn-primary" type="submit">Login</button></form></div>`;
+      document.body.appendChild(o);
+      o.querySelector(".exit-close").onclick = () => o.remove();
+      o.addEventListener("click", (ev) => { if (ev.target === o) o.remove(); });
+      o.querySelector("#loginForm").addEventListener("submit", async (ev) => {
+        ev.preventDefault();
+        const inputs = ev.target.querySelectorAll("input");
+        const phone = inputs[0].value.trim();
+        const name = inputs[1].value.trim();
+        try { await signUp(phone, name, ""); } catch (e) {}
+        localStorage.setItem("synapse_user", JSON.stringify({ phone, name }));
+        o.remove();
+        authBtn.textContent = "My Batch";
+        authBtn.href = "dashboard.html";
+      });
+    });
+  }
+})();
