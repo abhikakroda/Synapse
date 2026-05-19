@@ -328,8 +328,9 @@ if (!courseKey) {
       </div>
       ${courseKey === "ai-ml" ? `
       <div class="payment-box">
-        <div class="coupon-row">
-          <input type="text" id="couponInput" placeholder="Coupon code" />
+        <button class="coupon-toggle" id="couponToggle">🏷 Apply Coupon</button>
+        <div class="coupon-row" id="couponRow" style="display:none">
+          <input type="text" id="couponInput" placeholder="Enter code" />
           <button class="btn btn-secondary" id="applyCoupon">Apply</button>
         </div>
         <p class="coupon-status" id="couponStatus"></p>
@@ -441,7 +442,15 @@ nav?.addEventListener("click", (event) => {
   const couponBtn = document.getElementById("applyCoupon");
   const couponStatus = document.getElementById("couponStatus");
   const payBtn = document.getElementById("payBtn");
+  const couponToggle = document.getElementById("couponToggle");
+  const couponRow = document.getElementById("couponRow");
   if (!payBtn) return;
+
+  couponToggle?.addEventListener("click", () => {
+    couponToggle.style.display = "none";
+    couponRow.style.display = "flex";
+    couponInput.focus();
+  });
 
   let price = 999;
   const coupons = {
