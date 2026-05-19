@@ -28,13 +28,55 @@
         <div class="section-heading" style="text-align:left;max-width:100%">
           <p class="section-label">My Batch</p>
           <h1 id="dashGreeting">Welcome back</h1>
-          <p>Your purchased courses and internship batches appear here.</p>
+          <p>Your purchased courses, schedule, and progress.</p>
         </div>
 
         <div class="dashboard-grid" id="dashGrid">
           <div class="dash-empty">
             <p>No courses purchased yet.</p>
             <a class="btn btn-primary" href="course.html">Browse Courses</a>
+          </div>
+        </div>
+
+        <div class="dash-details" id="dashDetails" style="display:none">
+          <h2 class="dash-section-title">Batch Schedule</h2>
+          <div class="dash-schedule">
+            <article><span>Week 1</span><strong>Python Foundations</strong><p>Variables, loops, functions, OOP</p></article>
+            <article><span>Week 2</span><strong>Data Toolkit</strong><p>NumPy, Pandas, Matplotlib</p></article>
+            <article><span>Week 3</span><strong>Machine Learning</strong><p>Regression, classification, evaluation</p></article>
+            <article><span>Week 4</span><strong>Deep Learning</strong><p>Neural networks, TensorFlow, Keras</p></article>
+            <article><span>Week 5</span><strong>Generative AI</strong><p>Prompt engineering, LangChain, chatbots</p></article>
+            <article><span>Week 6</span><strong>Capstone Project</strong><p>End-to-end ML pipeline + resume prep</p></article>
+          </div>
+
+          <h2 class="dash-section-title">Your Progress</h2>
+          <div class="dash-progress">
+            <div class="progress-bar-track">
+              <div class="progress-bar-fill" style="width: 0%"></div>
+            </div>
+            <p>0% complete — Batch starts 20 June 2026</p>
+          </div>
+
+          <h2 class="dash-section-title">Resources</h2>
+          <div class="dash-resources">
+            <a href="#" class="resource-link">📄 Python Basics PDF</a>
+            <a href="#" class="resource-link">📝 AI & ML Roadmap</a>
+            <a href="#" class="resource-link">💬 WhatsApp Group</a>
+            <a href="#" class="resource-link">🎥 Recorded Classes</a>
+          </div>
+
+          <h2 class="dash-section-title">Mentor</h2>
+          <div class="dash-mentor">
+            <div class="dash-course-icon">UD</div>
+            <div>
+              <h3>Udhay</h3>
+              <p>AI/ML Instructor • Available on WhatsApp for doubts</p>
+            </div>
+          </div>
+
+          <h2 class="dash-section-title">Certificate</h2>
+          <div class="dash-cert-status">
+            <p>🔒 Certificate will be issued after project submission and batch completion.</p>
           </div>
         </div>
       </section>
@@ -79,9 +121,12 @@
 
       async function loadPurchases(phone) {
         const grid = document.getElementById("dashGrid");
+        const details = document.getElementById("dashDetails");
+        let hasPurchases = false;
         try {
           const data = await getPurchases(phone);
           if (data && data.length) {
+            hasPurchases = true;
             grid.innerHTML = data.map(p => `
               <article class="dash-course-card">
                 <div class="dash-course-icon">${p.course.slice(0, 2)}</div>
@@ -92,23 +137,25 @@
                 </div>
               </article>
             `).join("");
-            return;
           }
         } catch (e) {}
-        // Fallback to localStorage
-        const local = JSON.parse(localStorage.getItem("synapse_purchases") || "[]");
-        if (local.length) {
-          grid.innerHTML = local.map(p => `
-            <article class="dash-course-card">
-              <div class="dash-course-icon">${p.title.slice(0, 2)}</div>
-              <div>
-                <h3>${p.title}</h3>
-                <p>Purchased on ${p.date}</p>
-                <span class="course-status-badge is-live">Active</span>
-              </div>
-            </article>
-          `).join("");
+        if (!hasPurchases) {
+          const local = JSON.parse(localStorage.getItem("synapse_purchases") || "[]");
+          if (local.length) {
+            hasPurchases = true;
+            grid.innerHTML = local.map(p => `
+              <article class="dash-course-card">
+                <div class="dash-course-icon">${p.title.slice(0, 2)}</div>
+                <div>
+                  <h3>${p.title}</h3>
+                  <p>Purchased on ${p.date}</p>
+                  <span class="course-status-badge is-live">Active</span>
+                </div>
+              </article>
+            `).join("");
+          }
         }
+        if (hasPurchases) details.style.display = "block";
       }
 
       // Logout
