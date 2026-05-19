@@ -109,9 +109,10 @@ leadForm?.addEventListener("submit", (event) => {
   const name = String(formData.get("name") || "Student").trim();
   const phone = String(formData.get("phone") || "").trim();
   const program = String(formData.get("program") || "selected program").trim();
+  const college = String(formData.get("college") || "").trim();
   const message = String(formData.get("message") || "").trim();
 
-  submitToSheet({ name, phone, program, message });
+  submitToSheet({ name, phone, program, college, message });
 
   statusMessage.textContent = `Thanks ${name}. Your enquiry for ${program} is ready to send to the Synapse team.`;
   leadForm.reset();
