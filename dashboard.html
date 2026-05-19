@@ -239,7 +239,7 @@
       src="https://sweeping-chow-51.clerk.accounts.dev/npm/@clerk/clerk-js@latest/dist/clerk.browser.js"
       type="text/javascript"
     ></script>
-    <script src="supabase.js"></script>
+    <script src="supabase.js?v=3"></script>
     <script>
       // Menu toggle
       const menuButton = document.querySelector(".menu-toggle");
@@ -250,24 +250,64 @@
         menuButton.setAttribute("aria-expanded", String(isOpen));
       });
 
-      // Auth check via Clerk
-      window.addEventListener("load", async () => {
-        await window.Clerk?.load();
-        const user = window.Clerk?.user;
-        if (!user) {
-          window.location.href = "index.html";
-          return;
+      // Auth check via Clerk (wait for it to load)
+      async function initDashboard() {
+        // Wait for Clerk
+        await new Promise(r => {
+          if (window.Clerk) return r();
+          const i = setInterval(() => { if (window.Clerk) { clearInterval(i); r(); } }, 200);
+          setTimeout(() => { clearInterval(i); r(); }, 5000);
+        });
+
+        let user = null;
+        let phone = "";
+        let name = "";
+
+        if (window.Clerk) {
+          await window.Clerk.load();
+          user = window.Clerk.user;
         }
-        document.getElementById("dashGreeting").textContent = `Welcome, ${user.firstName || user.primaryPhoneNumber?.phoneNumber || "Student"}`;
-        const phone = user.primaryPhoneNumber?.phoneNumber || user.primaryEmailAddress?.emailAddress || "";
-        localStorage.setItem("synapse_user", JSON.stringify({ phone, name: user.firstName || "" }));
+
+        if (user) {
+          name = user.firstName || user.fullName || "";
+          phone = user.primaryPhoneNumber?.phoneNumber || user.primaryEmailAddress?.emailAddress || "";
+          localStorage.setItem("synapse_user", JSON.stringify({ phone, name }));
+        } else {
+          // Fallback to localStorage
+          const local = JSON.parse(localStorage.getItem("synapse_user") || "null");
+          if (!local) { window.location.href = "index.html"; return; }
+          name = local.name;
+          phone = local.phone;
+        }
+
+        document.getElementById("dashGreeting").textContent = `Welcome, ${name || "Student"}`;
         loadPurchases(phone);
-      });
+      }
+
+      initDashboard();
 
       async function loadPurchases(phone) {
         const grid = document.getElementById("dashGrid");
         const details = document.getElementById("dashDetails");
         let hasPurchases = false;
+
+        // Check localStorage first (instant)
+        const local = JSON.parse(localStorage.getItem("synapse_purchases") || "[]");
+        if (local.length) {
+          hasPurchases = true;
+          grid.innerHTML = local.map(p => `
+            <article class="dash-course-card">
+              <div class="dash-course-icon">${p.title.slice(0, 2)}</div>
+              <div>
+                <h3>${p.title}</h3>
+                <p>Purchased on ${p.date}</p>
+                <span class="course-status-badge is-live">Active</span>
+              </div>
+            </article>
+          `).join("");
+        }
+
+        // Then try Supabase
         try {
           const data = await getPurchases(phone);
           if (data && data.length) {
@@ -284,22 +324,7 @@
             `).join("");
           }
         } catch (e) {}
-        if (!hasPurchases) {
-          const local = JSON.parse(localStorage.getItem("synapse_purchases") || "[]");
-          if (local.length) {
-            hasPurchases = true;
-            grid.innerHTML = local.map(p => `
-              <article class="dash-course-card">
-                <div class="dash-course-icon">${p.title.slice(0, 2)}</div>
-                <div>
-                  <h3>${p.title}</h3>
-                  <p>Purchased on ${p.date}</p>
-                  <span class="course-status-badge is-live">Active</span>
-                </div>
-              </article>
-            `).join("");
-          }
-        }
+
         if (hasPurchases) details.style.display = "block";
       }
 

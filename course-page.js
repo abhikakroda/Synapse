@@ -495,21 +495,20 @@ nav?.addEventListener("click", (event) => {
       return;
     }
 
-    const user = window.Clerk.user;
-    const phone = user.primaryPhoneNumber?.phoneNumber || user.primaryEmailAddress?.emailAddress || "";
-    const name = user.firstName || user.fullName || "";
-
     if (price === 0) {
-      const purchases = JSON.parse(localStorage.getItem("synapse_purchases") || "[]");
-      purchases.push({ title: "AI & ML", date: new Date().toLocaleDateString("en-IN"), paymentId: "FREE-COUPON" });
-      localStorage.setItem("synapse_purchases", JSON.stringify(purchases));
-      localStorage.setItem("synapse_user", JSON.stringify({ phone, name }));
-      if (typeof savePurchase === "function") savePurchase(phone, "AI & ML", "FREE-COUPON", 0);
-      if (typeof signUp === "function") signUp(phone, name, "");
+      if (typeof saveEnrollment === "function") {
+        await saveEnrollment({
+          course: "AI & ML",
+          paymentId: "FREE-COUPON",
+          amount: 0
+        });
+      }
       alert("🎉 Congratulations! You have been enrolled for free.");
       window.location.href = "dashboard.html";
       return;
     }
+
+    const userDetails = typeof getClerkUserDetails === "function" ? getClerkUserDetails() : {};
 
     const options = {
       key: "rzp_test_SrFYeqYJM1Ef3u",
@@ -517,14 +516,19 @@ nav?.addEventListener("click", (event) => {
       currency: "INR",
       name: "Synapse",
       description: "AI & ML 45-Day Internship",
-      prefill: { name: name, contact: phone },
-      handler: function(response) {
-        const purchases = JSON.parse(localStorage.getItem("synapse_purchases") || "[]");
-        purchases.push({ title: "AI & ML", date: new Date().toLocaleDateString("en-IN"), paymentId: response.razorpay_payment_id });
-        localStorage.setItem("synapse_purchases", JSON.stringify(purchases));
-        localStorage.setItem("synapse_user", JSON.stringify({ phone, name }));
-        if (typeof savePurchase === "function") savePurchase(phone, "AI & ML", response.razorpay_payment_id, price);
-        if (typeof signUp === "function") signUp(phone, name, "");
+      prefill: {
+        name: userDetails.name || "",
+        email: userDetails.email || "",
+        contact: userDetails.phone || ""
+      },
+      handler: async function(response) {
+        if (typeof saveEnrollment === "function") {
+          await saveEnrollment({
+            course: "AI & ML",
+            paymentId: response.razorpay_payment_id,
+            amount: price
+          });
+        }
         alert("Payment successful! ID: " + response.razorpay_payment_id);
         window.location.href = "dashboard.html";
       },

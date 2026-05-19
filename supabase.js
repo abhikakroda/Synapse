@@ -29,6 +29,115 @@ function openClerkSignIn() {
   });
 }
 
+function getClerkUserDetails(user = window.Clerk?.user) {
+  if (!user) return {};
+
+  const email = user.primaryEmailAddress?.emailAddress || "";
+  const phone = user.primaryPhoneNumber?.phoneNumber || "";
+  const name = user.fullName || [user.firstName, user.lastName].filter(Boolean).join(" ") || email || phone || "Student";
+
+  return {
+    clerkId: user.id || "",
+    email,
+    phone,
+    name
+  };
+}
+
+async function saveUserProfile(details) {
+  const client = getSupabaseClient();
+  if (!client) return null;
+
+  const richProfile = {
+    clerk_id: details.clerkId,
+    email: details.email,
+    phone: details.phone || details.email,
+    name: details.name,
+    college: details.college || "",
+    updated_at: new Date().toISOString()
+  };
+
+  const { error } = await client.from("users").upsert(richProfile, {
+    onConflict: details.clerkId ? "clerk_id" : "phone"
+  });
+
+  if (!error) return null;
+
+  return client.from("users").upsert({
+    phone: details.phone || details.email,
+    name: details.name,
+    college: details.college || ""
+  });
+}
+
+async function updateClerkEnrollment(details) {
+  const user = window.Clerk?.user;
+  if (!user?.update) return null;
+
+  const existingSynapse = user.unsafeMetadata?.synapse || {};
+  const purchases = Array.isArray(existingSynapse.purchases) ? existingSynapse.purchases : [];
+
+  return user.update({
+    unsafeMetadata: {
+      ...user.unsafeMetadata,
+      synapse: {
+        ...existingSynapse,
+        enrolled: true,
+        latestCourse: details.course,
+        latestPaymentId: details.paymentId,
+        latestAmount: details.amount,
+        purchases: [
+          ...purchases,
+          {
+            course: details.course,
+            paymentId: details.paymentId,
+            amount: details.amount,
+            purchasedAt: details.purchasedAt
+          }
+        ]
+      }
+    }
+  });
+}
+
+async function saveEnrollment(details) {
+  const purchasedAt = new Date().toISOString();
+  const userDetails = getClerkUserDetails();
+  const enrollment = {
+    ...userDetails,
+    ...details,
+    purchasedAt
+  };
+
+  const purchases = JSON.parse(localStorage.getItem("synapse_purchases") || "[]");
+  purchases.push({
+    title: enrollment.course,
+    date: new Date(purchasedAt).toLocaleDateString("en-IN"),
+    paymentId: enrollment.paymentId,
+    amount: enrollment.amount
+  });
+  localStorage.setItem("synapse_purchases", JSON.stringify(purchases));
+  localStorage.setItem("synapse_user", JSON.stringify({
+    clerkId: enrollment.clerkId,
+    email: enrollment.email,
+    phone: enrollment.phone || enrollment.email,
+    name: enrollment.name
+  }));
+
+  const results = await Promise.allSettled([
+    saveUserProfile(enrollment),
+    savePurchase(enrollment),
+    updateClerkEnrollment(enrollment)
+  ]);
+
+  const failed = results.filter((result) => result.status === "rejected");
+  if (failed.length) {
+    console.warn("Some enrollment details were not saved", failed);
+  }
+
+  return enrollment;
+}
+
 // Auth functions (Clerk)
 function initClerkAuth() {
   const authBtn = document.getElementById("navAuth");
@@ -61,7 +170,7 @@ function initClerkAuth() {
 }
 
 async function signUp(phone, name, college) {
-  await getSupabaseClient()?.from("users").upsert({ phone, name, college });
+  await saveUserProfile({ phone, name, college });
   localStorage.setItem("synapse_user", JSON.stringify({ phone, name, college }));
 }
 
@@ -86,13 +195,35 @@ async function saveLead(data) {
 }
 
 // Purchases
-async function savePurchase(phone, course, paymentId, amount) {
-  return getSupabaseClient()?.from("purchases").insert({
-    phone,
-    course,
-    payment_id: paymentId,
-    amount,
-    created_at: new Date().toISOString()
+async function savePurchase(detailsOrPhone, course, paymentId, amount) {
+  const client = getSupabaseClient();
+  if (!client) return null;
+
+  const details = typeof detailsOrPhone === "object"
+    ? detailsOrPhone
+    : { phone: detailsOrPhone, course, paymentId, amount };
+
+  const richPurchase = {
+    clerk_id: details.clerkId,
+    email: details.email,
+    phone: details.phone || details.email,
+    name: details.name,
+    course: details.course,
+    payment_id: details.paymentId,
+    amount: details.amount,
+    status: "paid",
+    created_at: details.purchasedAt || new Date().toISOString()
+  };
+
+  const { error } = await client.from("purchases").insert(richPurchase);
+  if (!error) return null;
+
+  return client.from("purchases").insert({
+    phone: details.phone || details.email,
+    course: details.course,
+    payment_id: details.paymentId,
+    amount: details.amount,
+    created_at: richPurchase.created_at
   });
 }
 
