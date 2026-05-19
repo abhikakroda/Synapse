@@ -176,8 +176,8 @@ function fireConfetti() {
     setTimeout(() => toast.classList.add("show"), 50);
     setTimeout(() => { toast.classList.remove("show"); setTimeout(() => toast.remove(), 400); }, 4000);
   }
-  setTimeout(showToast, 5000);
-  setInterval(showToast, 15000);
+  setTimeout(showToast, 12000);
+  setInterval(showToast, 45000);
 })();
 
 // Exit-intent popup
