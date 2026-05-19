@@ -142,7 +142,7 @@ img {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 4px;
+  gap: 3px;
   padding: 0;
 }
 
@@ -4080,6 +4080,51 @@ body {
   animation: pulse-seat 1.5s infinite;
 }
 @keyframes pulse-seat { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+/* ===== PAYMENT BOX ===== */
+.payment-box {
+  margin-top: 20px;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.48);
+  border: 1px solid var(--glass-border);
+  border-radius: 18px;
+  box-shadow: var(--glass-inner-glow), var(--glass-shadow);
+  max-width: 360px;
+}
+.coupon-row {
+  display: flex;
+  gap: 8px;
+}
+.coupon-row input {
+  flex: 1;
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid rgba(34, 35, 49, 0.12);
+  border-radius: 10px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+.coupon-row input:focus {
+  outline: none;
+  border-color: #343aa4;
+}
+.coupon-row .btn {
+  min-height: 44px;
+  padding: 0 16px;
+  font-size: 13px;
+}
+.coupon-status {
+  margin: 8px 0 0;
+  font-size: 13px;
+  font-weight: 750;
+  min-height: 20px;
+}
+.pay-btn {
+  width: 100%;
+  margin-top: 14px;
+}
 
 /* ===== STUDENT COUNTER ===== */
 .student-counter-section {

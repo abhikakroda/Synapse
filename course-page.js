@@ -326,7 +326,16 @@ if (!courseKey) {
         <a class="btn btn-primary" href="index.html#contact">${course.cta}</a>
         <span class="coming-soon-badge">${course.status}</span>
       </div>
-      ${courseKey === "ai-ml" ? `<div class="countdown-banner"><span class="countdown-label">Batch starts in</span><div class="countdown-timer" id="courseCountdown"></div></div><div class="seats-counter"><span class="pulse-dot"></span> Only <span id="seatsLeft">14</span> seats left</div>` : ""}
+      ${courseKey === "ai-ml" ? `
+      <div class="payment-box">
+        <div class="coupon-row">
+          <input type="text" id="couponInput" placeholder="Coupon code" />
+          <button class="btn btn-secondary" id="applyCoupon">Apply</button>
+        </div>
+        <p class="coupon-status" id="couponStatus"></p>
+        <button class="btn btn-primary pay-btn" id="payBtn">Pay ₹999</button>
+      </div>
+      <div class="countdown-banner"><span class="countdown-label">Batch starts in</span><div class="countdown-timer" id="courseCountdown"></div></div><div class="seats-counter"><span class="pulse-dot"></span> Only <span id="seatsLeft">14</span> seats left</div>` : ""}
     </div>
     <figure class="course-poster">
       <img src="${course.poster}" alt="${course.title} course poster" />
@@ -424,4 +433,58 @@ nav?.addEventListener("click", (event) => {
   }
   update();
   setInterval(update, 1000);
+})();
+
+// Coupon & Stripe Payment
+(function initPayment() {
+  const couponInput = document.getElementById("couponInput");
+  const couponBtn = document.getElementById("applyCoupon");
+  const couponStatus = document.getElementById("couponStatus");
+  const payBtn = document.getElementById("payBtn");
+  if (!payBtn) return;
+
+  let price = 999;
+  const coupons = {
+    "STAY10": { discount: 10, type: "percent" },
+    "SYNAPSE100": { discount: 100, type: "flat" },
+    "EARLY50": { discount: 50, type: "flat" },
+    "REFER100": { discount: 100, type: "flat" }
+  };
+
+  couponBtn?.addEventListener("click", () => {
+    const code = couponInput.value.trim().toUpperCase();
+    const coupon = coupons[code];
+    if (coupon) {
+      if (coupon.type === "percent") {
+        price = Math.round(999 - (999 * coupon.discount / 100));
+      } else {
+        price = 999 - coupon.discount;
+      }
+      couponStatus.textContent = `✓ Coupon applied! You save ₹${999 - price}`;
+      couponStatus.style.color = "#155f3c";
+      payBtn.textContent = `Pay ₹${price}`;
+    } else {
+      couponStatus.textContent = "✗ Invalid coupon code";
+      couponStatus.style.color = "#d32f2f";
+    }
+  });
+
+  payBtn.addEventListener("click", async () => {
+    payBtn.textContent = "Redirecting...";
+    payBtn.disabled = true;
+    try {
+      // Stripe Checkout - replace with your actual Stripe publishable key and price ID
+      const stripe = Stripe("pk_live_YOUR_STRIPE_KEY");
+      const { error } = await stripe.redirectToCheckout({
+        lineItems: [{ price: "price_YOUR_PRICE_ID", quantity: 1 }],
+        mode: "payment",
+        successUrl: window.location.origin + "/course.html?course=ai-ml&paid=1",
+        cancelUrl: window.location.href
+      });
+      if (error) throw error;
+    } catch (e) {
+      // Fallback: redirect to contact
+      window.location.href = "https://wa.me/918803250878?text=Hi%20Synapse%2C%20I%20want%20to%20pay%20for%20AI%20%26%20ML%20internship";
+    }
+  });
 })();
