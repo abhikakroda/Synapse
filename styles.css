@@ -4119,7 +4119,9 @@ body {
   margin: 8px 0 0;
   font-size: 13px;
   font-weight: 750;
-  min-height: 20px;
+}
+.coupon-status:empty {
+  display: none;
 }
 .pay-btn {
   width: 100%;
