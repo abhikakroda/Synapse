@@ -107,7 +107,11 @@ leadForm?.addEventListener("submit", (event) => {
 
   const formData = new FormData(leadForm);
   const name = String(formData.get("name") || "Student").trim();
+  const phone = String(formData.get("phone") || "").trim();
   const program = String(formData.get("program") || "selected program").trim();
+  const message = String(formData.get("message") || "").trim();
+
+  submitToSheet({ name, phone, program, message });
 
   statusMessage.textContent = `Thanks ${name}. Your enquiry for ${program} is ready to send to the Synapse team.`;
   leadForm.reset();
@@ -251,13 +255,7 @@ function submitToSheet(data) {
   fetch(SHEET_URL, { method: "POST", mode: "no-cors", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) }).catch(() => {});
 }
 
-// Send lead form to Sheets
-if (leadForm) {
-  leadForm.addEventListener("submit", () => {
-    const fd = new FormData(leadForm);
-    submitToSheet({ name: fd.get("name"), phone: fd.get("phone"), program: fd.get("program"), message: fd.get("message") });
-  });
-}
+// Send lead form to Sheets (handled in main submit handler above)
 
 // Email capture popup (once per session, after 8s)
 (function emailPopup() {
