@@ -4915,6 +4915,49 @@ body {
   }
 }
 
+/* ===== DASHBOARD ===== */
+.dashboard-hero { padding-top: clamp(140px, 14vh, 200px); }
+.dashboard-hero h1 {
+  margin: 0;
+  color: #24242a;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(32px, 4vw, 52px);
+  font-weight: 400;
+}
+.dashboard-grid { margin-top: 32px; display: grid; gap: 16px; }
+.dash-empty {
+  padding: 48px 32px;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.48);
+  border: 1px solid var(--glass-border);
+  border-radius: 22px;
+  box-shadow: var(--glass-inner-glow), var(--glass-shadow);
+}
+.dash-empty p { margin: 0 0 20px; color: var(--muted); font-size: 16px; }
+.dash-course-card {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 22px;
+  background: rgba(255, 255, 255, 0.48);
+  border: 1px solid var(--glass-border);
+  border-radius: 22px;
+  box-shadow: var(--glass-inner-glow), var(--glass-shadow);
+}
+.dash-course-icon {
+  width: 56px;
+  height: 56px;
+  display: grid;
+  place-items: center;
+  background: #eef0ff;
+  border-radius: 14px;
+  color: #343aa4;
+  font-weight: 900;
+  font-size: 18px;
+}
+.dash-course-card h3 { margin: 0; font-size: 18px; color: #24242a; }
+.dash-course-card p { margin: 6px 0 8px; color: var(--muted); font-size: 14px; }
+
 /* ===== BACK TO TOP ===== */
 .back-to-top {
   position: fixed;

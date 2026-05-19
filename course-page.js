@@ -482,8 +482,11 @@ nav?.addEventListener("click", (event) => {
 
   payBtn.addEventListener("click", () => {
     if (price === 0) {
+      const purchases = JSON.parse(localStorage.getItem("synapse_purchases") || "[]");
+      purchases.push({ title: "AI & ML", date: new Date().toLocaleDateString("en-IN"), paymentId: "FREE-COUPON" });
+      localStorage.setItem("synapse_purchases", JSON.stringify(purchases));
       alert("🎉 Congratulations! You have been enrolled for free.");
-      window.location.href = "https://wa.me/918803250878?text=Hi%20Synapse%2C%20I%20used%20a%20100%25%20off%20coupon%20for%20AI%20%26%20ML%20internship";
+      window.location.href = "dashboard.html";
       return;
     }
     const options = {
@@ -493,8 +496,11 @@ nav?.addEventListener("click", (event) => {
       name: "Synapse",
       description: "AI & ML 45-Day Internship",
       handler: function(response) {
+        const purchases = JSON.parse(localStorage.getItem("synapse_purchases") || "[]");
+        purchases.push({ title: "AI & ML", date: new Date().toLocaleDateString("en-IN"), paymentId: response.razorpay_payment_id });
+        localStorage.setItem("synapse_purchases", JSON.stringify(purchases));
         alert("Payment successful! ID: " + response.razorpay_payment_id);
-        window.location.href = "https://wa.me/918803250878?text=Hi%20Synapse%2C%20I%20paid%20for%20AI%20%26%20ML.%20Payment%20ID%3A%20" + response.razorpay_payment_id;
+        window.location.href = "dashboard.html";
       },
       prefill: { name: "", email: "", contact: "" },
       theme: { color: "#343aa4" }

@@ -278,3 +278,38 @@ function submitToSheet(data) {
     });
   }, 8000);
 })();
+
+// Simple auth system (localStorage based)
+(function initAuth() {
+  const authBtn = document.getElementById("navAuth");
+  if (!authBtn) return;
+  const user = JSON.parse(localStorage.getItem("synapse_user") || "null");
+  if (user) {
+    authBtn.textContent = "My Batch";
+    authBtn.href = "dashboard.html";
+  } else {
+    authBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      showLoginPopup();
+    });
+  }
+})();
+
+function showLoginPopup() {
+  const o = document.createElement("div");
+  o.className = "exit-popup-overlay";
+  o.innerHTML = `<div class="exit-popup"><button class="exit-close" aria-label="Close">✕</button><h3>Login to Synapse</h3><p>Enter your phone number to access your batch.</p><form class="email-popup-form" id="loginForm"><input type="tel" placeholder="+91 98765 43210" required /><input type="text" placeholder="Your name" required /><button class="btn btn-primary" type="submit">Login</button></form></div>`;
+  document.body.appendChild(o);
+  o.querySelector(".exit-close").onclick = () => o.remove();
+  o.addEventListener("click", (ev) => { if (ev.target === o) o.remove(); });
+  o.querySelector("#loginForm").addEventListener("submit", (ev) => {
+    ev.preventDefault();
+    const inputs = ev.target.querySelectorAll("input");
+    const user = { phone: inputs[0].value, name: inputs[1].value };
+    localStorage.setItem("synapse_user", JSON.stringify(user));
+    o.remove();
+    const authBtn = document.getElementById("navAuth");
+    authBtn.textContent = "My Batch";
+    authBtn.href = "dashboard.html";
+  });
+}
