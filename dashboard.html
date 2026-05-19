@@ -137,6 +137,80 @@
           <div class="dash-cert-status">
             <p>🔒 Certificate will be issued after project submission and batch completion.</p>
           </div>
+
+          <h2 class="dash-section-title">Gamification</h2>
+          <div class="dash-cards-row">
+            <div class="dash-gradient-card grad-purple">
+              <strong>🏆 Leaderboard</strong>
+              <p>Rank #-- (batch not started)</p>
+              <button class="btn btn-light" disabled>View Rankings</button>
+            </div>
+            <div class="dash-gradient-card grad-blue">
+              <strong>🎖 Badges</strong>
+              <p>0/6 unlocked</p>
+              <div class="badge-row">
+                <span class="badge-locked">🐍 Python Pro</span>
+                <span class="badge-locked">🤖 ML Master</span>
+                <span class="badge-locked">📤 First Submission</span>
+                <span class="badge-locked">🔥 7-Day Streak</span>
+                <span class="badge-locked">🧠 AI Builder</span>
+                <span class="badge-locked">🎓 Graduate</span>
+              </div>
+            </div>
+            <div class="dash-gradient-card grad-green">
+              <strong>📝 Weekly Quiz</strong>
+              <p>No quizzes available yet</p>
+              <button class="btn btn-light" disabled>Take Quiz</button>
+            </div>
+          </div>
+
+          <h2 class="dash-section-title">Career</h2>
+          <div class="dash-cards-row">
+            <div class="dash-gradient-card grad-dark">
+              <strong>📄 Resume Builder</strong>
+              <p>AI/ML optimized template</p>
+              <button class="btn btn-light" onclick="alert('Available after Week 6')">Build Resume</button>
+            </div>
+            <div class="dash-gradient-card grad-orange">
+              <strong>🎤 Interview Prep</strong>
+              <p>50+ ML interview questions</p>
+              <button class="btn btn-light" onclick="alert('Available after Week 4')">Practice</button>
+            </div>
+            <div class="dash-gradient-card grad-purple">
+              <strong>💼 Job Board</strong>
+              <p>Curated AI/ML internships</p>
+              <a class="btn btn-light" href="https://wa.me/918803250878?text=Hi%20Synapse%2C%20share%20job%20board%20links" target="_blank">View Jobs</a>
+            </div>
+            <div class="dash-gradient-card grad-blue">
+              <strong>💬 LinkedIn Templates</strong>
+              <p>Share your learning journey</p>
+              <button class="btn btn-light" onclick="alert('Available after Week 1')">Get Templates</button>
+            </div>
+          </div>
+
+          <h2 class="dash-section-title">Account</h2>
+          <div class="dash-cards-row">
+            <div class="dash-gradient-card grad-dark">
+              <strong>👤 Profile</strong>
+              <p id="profileInfo">Loading...</p>
+              <button class="btn btn-light" onclick="window.Clerk?.openUserProfile()">Edit Profile</button>
+            </div>
+            <div class="dash-gradient-card grad-green">
+              <strong>🧾 Payment History</strong>
+              <p id="paymentInfo">Loading...</p>
+              <button class="btn btn-light" onclick="alert('Invoice sent to your email')">Download Invoice</button>
+            </div>
+            <div class="dash-gradient-card grad-orange">
+              <strong>🎁 Refer Friends</strong>
+              <p>Share & earn ₹100 off</p>
+              <a class="btn btn-light" href="https://wa.me/?text=Join%20Synapse%20AI%20%26%20ML%20internship%20at%20₹999%20→%20https://synapse-academy.vercel.app/course.html?course=ai-ml" target="_blank">Share Link</a>
+            </div>
+            <div class="dash-gradient-card grad-purple">
+              <strong>💬 Support</strong>
+              <p>Chat with us on WhatsApp</p>
+              <a class="btn btn-light" href="https://wa.me/918803250878?text=Hi%20Synapse%2C%20I%20need%20help%20with%20my%20batch" target="_blank">Get Help</a>
+            </div>
+          </div>
         </div>
       </section>
     </main>
@@ -237,6 +311,16 @@
         localStorage.removeItem("synapse_purchases");
         window.location.href = "index.html";
       });
+
+      // Populate account info
+      setTimeout(() => {
+        const u = window.Clerk?.user;
+        const pi = document.getElementById("profileInfo");
+        const pay = document.getElementById("paymentInfo");
+        if (pi) pi.textContent = u ? (u.fullName || u.primaryEmailAddress?.emailAddress || "Student") : "Student";
+        const purchases = JSON.parse(localStorage.getItem("synapse_purchases") || "[]");
+        if (pay) pay.textContent = purchases.length ? `${purchases.length} course(s) purchased` : "No purchases yet";
+      }, 2000);
     </script>
   </body>
 </html>
