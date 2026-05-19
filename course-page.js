@@ -485,7 +485,11 @@ nav?.addEventListener("click", (event) => {
     if (!window.Clerk) { alert("Loading... try again"); return; }
     try { await window.Clerk.load(); } catch(e) {}
     if (!window.Clerk.user) {
-      window.Clerk.openSignIn();
+      if (typeof openClerkSignIn === "function") {
+        openClerkSignIn();
+      } else {
+        window.Clerk.openSignIn();
+      }
       // Wait for sign in then retry
       window.Clerk.addListener(({ user }) => { if (user) payBtn.click(); });
       return;
