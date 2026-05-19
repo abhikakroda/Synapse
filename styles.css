@@ -4832,3 +4832,57 @@ body {
     -webkit-backdrop-filter: none !important;
   }
 }
+
+/* ===== BACK TO TOP ===== */
+.back-to-top {
+  position: fixed;
+  bottom: 24px;
+  left: 24px;
+  z-index: 800;
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  background: #28293c;
+  color: #ffffff;
+  border: none;
+  border-radius: 50%;
+  font-size: 20px;
+  cursor: pointer;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 300ms ease, transform 300ms ease;
+  pointer-events: none;
+}
+.back-to-top.visible {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+/* ===== EMAIL POPUP FORM ===== */
+.email-popup-form {
+  display: grid;
+  gap: 12px;
+  margin-top: 18px;
+}
+.email-popup-form input {
+  width: 100%;
+  min-height: 48px;
+  padding: 0 16px;
+  border: 1px solid rgba(34, 35, 49, 0.12);
+  border-radius: 12px;
+  font: inherit;
+  font-size: 16px;
+}
+.email-popup-form input:focus {
+  outline: none;
+  border-color: #343aa4;
+  box-shadow: 0 0 0 4px rgba(52, 58, 164, 0.08);
+}
+.email-popup-status {
+  margin: 8px 0 0;
+  color: #155f3c;
+  font-weight: 750;
+  font-size: 14px;
+}

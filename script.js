@@ -216,3 +216,66 @@ function fireConfetti() {
   }, { threshold: 0.5 });
   counters.forEach(el => observer.observe(el));
 })();
+
+// Back to top button
+(function backToTop() {
+  const btn = document.createElement("button");
+  btn.className = "back-to-top";
+  btn.innerHTML = "↑";
+  btn.setAttribute("aria-label", "Back to top");
+  document.body.appendChild(btn);
+  btn.addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
+  window.addEventListener("scroll", () => {
+    btn.classList.toggle("visible", window.scrollY > 600);
+  }, { passive: true });
+})();
+
+// Page transition fade
+(function pageTransition() {
+  document.body.style.opacity = "0";
+  document.body.style.transition = "opacity 300ms ease";
+  requestAnimationFrame(() => { document.body.style.opacity = "1"; });
+  document.addEventListener("click", (e) => {
+    const link = e.target.closest("a[href]");
+    if (!link || link.target === "_blank" || link.href.includes("#")) return;
+    if (link.hostname !== window.location.hostname) return;
+    e.preventDefault();
+    document.body.style.opacity = "0";
+    setTimeout(() => { window.location.href = link.href; }, 250);
+  });
+})();
+
+// Google Sheets backend
+function submitToSheet(data) {
+  const SHEET_URL = "https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec";
+  fetch(SHEET_URL, { method: "POST", mode: "no-cors", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) }).catch(() => {});
+}
+
+// Send lead form to Sheets
+if (leadForm) {
+  leadForm.addEventListener("submit", () => {
+    const fd = new FormData(leadForm);
+    submitToSheet({ name: fd.get("name"), phone: fd.get("phone"), program: fd.get("program"), message: fd.get("message") });
+  });
+}
+
+// Email capture popup (once per session, after 8s)
+(function emailPopup() {
+  if (sessionStorage.getItem("emailShown")) return;
+  setTimeout(() => {
+    sessionStorage.setItem("emailShown", "1");
+    const o = document.createElement("div");
+    o.className = "exit-popup-overlay";
+    o.innerHTML = `<div class="exit-popup"><button class="exit-close" aria-label="Close">✕</button><h3>Get free Python PDF</h3><p>Enter your email and we'll send you our Python Basics PDF with practice questions.</p><form class="email-popup-form"><input type="email" placeholder="your@email.com" required /><button class="btn btn-primary" type="submit">Send PDF</button></form><p class="email-popup-status"></p></div>`;
+    document.body.appendChild(o);
+    o.querySelector(".exit-close").onclick = () => o.remove();
+    o.addEventListener("click", (ev) => { if (ev.target === o) o.remove(); });
+    o.querySelector("form").addEventListener("submit", (ev) => {
+      ev.preventDefault();
+      submitToSheet({ name: "PDF Request", phone: "", program: "Python PDF", message: ev.target.querySelector("input").value });
+      o.querySelector(".email-popup-status").textContent = "✓ Check your email shortly!";
+      ev.target.reset();
+      setTimeout(() => o.remove(), 2000);
+    });
+  }, 8000);
+})();
