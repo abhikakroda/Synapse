@@ -10,8 +10,15 @@ function initClerkAuth() {
   if (!authBtn) return;
 
   authBtn.onclick = async () => {
-    if (!window.Clerk) { alert("Loading... try again"); return; }
-    try { await window.Clerk.load(); } catch(e) {}
+    if (!window.Clerk) {
+      // Wait up to 5s for Clerk
+      await new Promise(r => {
+        const i = setInterval(() => { if (window.Clerk) { clearInterval(i); r(); } }, 200);
+        setTimeout(() => { clearInterval(i); r(); }, 5000);
+      });
+    }
+    if (!window.Clerk) { alert("Login service loading, please try again."); return; }
+    await window.Clerk.load();
     if (window.Clerk.user) {
       window.location.href = "dashboard.html";
     } else {
@@ -19,14 +26,13 @@ function initClerkAuth() {
     }
   };
 
-  // Check if already logged in
-  setTimeout(async () => {
+  // Auto-update if already signed in
+  const poll = setInterval(async () => {
     if (!window.Clerk) return;
-    try { await window.Clerk.load(); } catch(e) {}
-    if (window.Clerk.user) {
-      authBtn.textContent = "My Batch";
-    }
-  }, 1500);
+    clearInterval(poll);
+    await window.Clerk.load();
+    if (window.Clerk.user) authBtn.textContent = "My Batch";
+  }, 1000);
 }
 
 async function signUp(phone, name, college) {
