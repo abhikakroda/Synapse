@@ -250,10 +250,9 @@ function fireConfetti() {
   });
 })();
 
-// Google Sheets backend
+// Save lead to Supabase
 function submitToSheet(data) {
-  const SHEET_URL = "https://script.google.com/macros/s/AKfycbx_iBGTnWFc3602w0YyAzE133dPIi1knjX5Lxz832SsKrIlFzsqmgICYvYoTrIQeh0/exec";
-  fetch(SHEET_URL, { method: "POST", mode: "no-cors", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) }).catch(() => {});
+  if (typeof saveLead === "function") saveLead(data).catch(() => {});
 }
 
 // Send lead form to Sheets (handled in main submit handler above)
@@ -302,11 +301,17 @@ function showLoginPopup() {
   document.body.appendChild(o);
   o.querySelector(".exit-close").onclick = () => o.remove();
   o.addEventListener("click", (ev) => { if (ev.target === o) o.remove(); });
-  o.querySelector("#loginForm").addEventListener("submit", (ev) => {
+  o.querySelector("#loginForm").addEventListener("submit", async (ev) => {
     ev.preventDefault();
     const inputs = ev.target.querySelectorAll("input");
-    const user = { phone: inputs[0].value, name: inputs[1].value };
-    localStorage.setItem("synapse_user", JSON.stringify(user));
+    const phone = inputs[0].value.trim();
+    const name = inputs[1].value.trim();
+    try {
+      await signUp(phone, name, "");
+    } catch (e) {
+      try { await signIn(phone); } catch (e2) {}
+    }
+    localStorage.setItem("synapse_user", JSON.stringify({ phone, name }));
     o.remove();
     const authBtn = document.getElementById("navAuth");
     authBtn.textContent = "My Batch";

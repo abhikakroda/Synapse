@@ -10,6 +10,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="styles.css" />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase.js"></script>
   </head>
   <body>
     <header class="site-header">
@@ -80,17 +82,25 @@
         }
       });
 
-      // Sample certificate database
+      // Sample certificate database (fallback)
       const certificates = {
         "SYN-2026-001": { name: "Sample Student", domain: "AI & Machine Learning", project: "AI-Powered Resume Analyzer", date: "August 2026", status: "Verified" },
         "SYN-2026-002": { name: "Demo User", domain: "Cybersecurity", project: "Network Vulnerability Scanner", date: "August 2026", status: "Verified" }
       };
 
-      document.getElementById("verifyForm").addEventListener("submit", (e) => {
+      document.getElementById("verifyForm").addEventListener("submit", async (e) => {
         e.preventDefault();
         const id = document.getElementById("certId").value.trim().toUpperCase();
         const result = document.getElementById("verifyResult");
-        const cert = certificates[id];
+
+        // Try Supabase first
+        let cert = null;
+        try {
+          cert = await verifyCertificate(id);
+        } catch (err) {}
+
+        // Fallback to local
+        if (!cert) cert = certificates[id];
 
         if (cert) {
           result.innerHTML = `
@@ -102,7 +112,7 @@
                 <dt>Domain</dt><dd>${cert.domain}</dd>
                 <dt>Project</dt><dd>${cert.project}</dd>
                 <dt>Completion</dt><dd>${cert.date}</dd>
-                <dt>Status</dt><dd>${cert.status}</dd>
+                <dt>Status</dt><dd>${cert.status || "Verified"}</dd>
               </dl>
             </div>`;
         } else {

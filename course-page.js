@@ -482,9 +482,11 @@ nav?.addEventListener("click", (event) => {
 
   payBtn.addEventListener("click", () => {
     if (price === 0) {
+      const user = JSON.parse(localStorage.getItem("synapse_user") || "{}");
       const purchases = JSON.parse(localStorage.getItem("synapse_purchases") || "[]");
       purchases.push({ title: "AI & ML", date: new Date().toLocaleDateString("en-IN"), paymentId: "FREE-COUPON" });
       localStorage.setItem("synapse_purchases", JSON.stringify(purchases));
+      if (typeof savePurchase === "function") savePurchase(user.phone || "", "AI & ML", "FREE-COUPON", 0);
       alert("🎉 Congratulations! You have been enrolled for free.");
       window.location.href = "dashboard.html";
       return;
@@ -496,9 +498,11 @@ nav?.addEventListener("click", (event) => {
       name: "Synapse",
       description: "AI & ML 45-Day Internship",
       handler: function(response) {
+        const user = JSON.parse(localStorage.getItem("synapse_user") || "{}");
         const purchases = JSON.parse(localStorage.getItem("synapse_purchases") || "[]");
         purchases.push({ title: "AI & ML", date: new Date().toLocaleDateString("en-IN"), paymentId: response.razorpay_payment_id });
         localStorage.setItem("synapse_purchases", JSON.stringify(purchases));
+        if (typeof savePurchase === "function") savePurchase(user.phone || "", "AI & ML", response.razorpay_payment_id, price);
         alert("Payment successful! ID: " + response.razorpay_payment_id);
         window.location.href = "dashboard.html";
       },
