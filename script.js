@@ -306,11 +306,7 @@ function showLoginPopup() {
     const inputs = ev.target.querySelectorAll("input");
     const phone = inputs[0].value.trim();
     const name = inputs[1].value.trim();
-    try {
-      await signUp(phone, name, "");
-    } catch (e) {
-      try { await signIn(phone); } catch (e2) {}
-    }
+    try { await signUp(phone, name, ""); } catch (e) {}
     localStorage.setItem("synapse_user", JSON.stringify({ phone, name }));
     o.remove();
     const authBtn = document.getElementById("navAuth");

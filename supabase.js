@@ -6,31 +6,20 @@ const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // Auth functions
 async function signUp(phone, name, college) {
-  const { data, error } = await supabase.auth.signUp({
-    phone,
-    password: phone,
-    options: { data: { name, college } }
-  });
-  if (error) throw error;
   await supabase.from("users").upsert({ phone, name, college });
   localStorage.setItem("synapse_user", JSON.stringify({ phone, name, college }));
-  return data;
 }
 
 async function signIn(phone) {
-  const { data, error } = await supabase.auth.signInWithPassword({
-    phone,
-    password: phone
-  });
-  if (error) throw error;
-  const user = data.user;
-  const profile = { phone, name: user.user_metadata?.name || "" };
-  localStorage.setItem("synapse_user", JSON.stringify(profile));
-  return profile;
+  const { data } = await supabase.from("users").select("*").eq("phone", phone).single();
+  if (data) {
+    localStorage.setItem("synapse_user", JSON.stringify(data));
+    return data;
+  }
+  return null;
 }
 
 async function signOut() {
-  await supabase.auth.signOut();
   localStorage.removeItem("synapse_user");
   localStorage.removeItem("synapse_purchases");
 }
