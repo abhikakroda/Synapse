@@ -4091,7 +4091,16 @@ body {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 32px;
+  gap: 48px;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 36px 48px;
+  background: rgba(255, 255, 255, 0.48);
+  border: 1px solid var(--glass-border);
+  border-radius: 28px;
+  box-shadow: var(--glass-inner-glow), var(--glass-shadow);
+  backdrop-filter: blur(32px) saturate(1.6);
+  -webkit-backdrop-filter: blur(32px) saturate(1.6);
 }
 .counter-item {
   text-align: center;
