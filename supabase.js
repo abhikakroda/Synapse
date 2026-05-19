@@ -5,32 +5,33 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // Auth functions (Clerk)
-let clerkLoaded = false;
-
 function initClerkAuth() {
   const authBtn = document.getElementById("navAuth");
   if (!authBtn) return;
 
-  if (window.Clerk) {
-    window.Clerk.load().then(() => {
-      clerkLoaded = true;
-      updateAuthButton(authBtn);
-      window.Clerk.addListener(({ user }) => updateAuthButton(authBtn));
-    });
-  }
-}
+  // Make button clickable immediately
+  authBtn.addEventListener("click", async (e) => {
+    e.preventDefault();
+    if (!window.Clerk) return;
+    try { await window.Clerk.load(); } catch(err) {}
+    const user = window.Clerk.user;
+    if (user) {
+      window.location.href = "dashboard.html";
+    } else {
+      window.Clerk.openSignIn();
+    }
+  });
 
-function updateAuthButton(btn) {
-  const user = window.Clerk?.user;
-  if (user) {
-    btn.textContent = "My Batch";
-    btn.href = "dashboard.html";
-    btn.onclick = null;
-  } else {
-    btn.textContent = "Login";
-    btn.href = "#";
-    btn.onclick = (e) => { e.preventDefault(); window.Clerk.openSignIn(); };
-  }
+  // Update button text when Clerk loads
+  const checkClerk = setInterval(async () => {
+    if (!window.Clerk) return;
+    clearInterval(checkClerk);
+    try { await window.Clerk.load(); } catch(err) {}
+    if (window.Clerk.user) {
+      authBtn.textContent = "My Batch";
+      authBtn.href = "dashboard.html";
+    }
+  }, 500);
 }
 
 async function signUp(phone, name, college) {
@@ -44,10 +45,8 @@ async function signOut() {
   localStorage.removeItem("synapse_purchases");
 }
 
-// Init Clerk on load
-if (typeof window !== "undefined") {
-  window.addEventListener("load", initClerkAuth);
-}
+// Init on DOM ready
+document.addEventListener("DOMContentLoaded", initClerkAuth);
 
 // Leads
 async function saveLead(data) {
