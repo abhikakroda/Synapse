@@ -4,24 +4,49 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// Auth functions
+// Auth functions (Clerk)
+let clerkLoaded = false;
+
+function initClerkAuth() {
+  const authBtn = document.getElementById("navAuth");
+  if (!authBtn) return;
+
+  if (window.Clerk) {
+    window.Clerk.load().then(() => {
+      clerkLoaded = true;
+      updateAuthButton(authBtn);
+      window.Clerk.addListener(({ user }) => updateAuthButton(authBtn));
+    });
+  }
+}
+
+function updateAuthButton(btn) {
+  const user = window.Clerk?.user;
+  if (user) {
+    btn.textContent = "My Batch";
+    btn.href = "dashboard.html";
+    btn.onclick = null;
+  } else {
+    btn.textContent = "Login";
+    btn.href = "#";
+    btn.onclick = (e) => { e.preventDefault(); window.Clerk.openSignIn(); };
+  }
+}
+
 async function signUp(phone, name, college) {
   await supabase.from("users").upsert({ phone, name, college });
   localStorage.setItem("synapse_user", JSON.stringify({ phone, name, college }));
 }
 
-async function signIn(phone) {
-  const { data } = await supabase.from("users").select("*").eq("phone", phone).single();
-  if (data) {
-    localStorage.setItem("synapse_user", JSON.stringify(data));
-    return data;
-  }
-  return null;
-}
-
 async function signOut() {
+  if (window.Clerk) await window.Clerk.signOut();
   localStorage.removeItem("synapse_user");
   localStorage.removeItem("synapse_purchases");
+}
+
+// Init Clerk on load
+if (typeof window !== "undefined") {
+  window.addEventListener("load", initClerkAuth);
 }
 
 // Leads

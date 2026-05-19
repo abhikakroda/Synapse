@@ -99,6 +99,10 @@
     </a>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script
+      data-clerk-publishable-key="YOUR_CLERK_PUBLISHABLE_KEY"
+      src="https://cdn.jsdelivr.net/npm/@clerk/clerk-js@latest/dist/clerk.browser.js"
+    ></script>
     <script src="supabase.js"></script>
     <script>
       // Menu toggle
@@ -110,14 +114,19 @@
         menuButton.setAttribute("aria-expanded", String(isOpen));
       });
 
-      // Auth check
-      const user = JSON.parse(localStorage.getItem("synapse_user") || "null");
-      if (!user) {
-        window.location.href = "index.html";
-      } else {
-        document.getElementById("dashGreeting").textContent = `Welcome, ${user.name}`;
-        loadPurchases(user.phone);
-      }
+      // Auth check via Clerk
+      window.addEventListener("load", async () => {
+        await window.Clerk?.load();
+        const user = window.Clerk?.user;
+        if (!user) {
+          window.location.href = "index.html";
+          return;
+        }
+        document.getElementById("dashGreeting").textContent = `Welcome, ${user.firstName || user.primaryPhoneNumber?.phoneNumber || "Student"}`;
+        const phone = user.primaryPhoneNumber?.phoneNumber || user.primaryEmailAddress?.emailAddress || "";
+        localStorage.setItem("synapse_user", JSON.stringify({ phone, name: user.firstName || "" }));
+        loadPurchases(phone);
+      });
 
       async function loadPurchases(phone) {
         const grid = document.getElementById("dashGrid");
@@ -161,7 +170,9 @@
       // Logout
       document.getElementById("logoutBtn").addEventListener("click", async (e) => {
         e.preventDefault();
-        await signOut();
+        await window.Clerk?.signOut();
+        localStorage.removeItem("synapse_user");
+        localStorage.removeItem("synapse_purchases");
         window.location.href = "index.html";
       });
     </script>
