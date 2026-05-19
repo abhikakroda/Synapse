@@ -3774,7 +3774,7 @@ body {
   align-items: center;
   justify-content: center;
   gap: 12px;
-  padding: 12px 20px;
+  padding: 12px 44px 12px 20px;
   background: linear-gradient(135deg, #28293c, #343aa4);
   color: #ffffff;
   font-size: 14px;
@@ -3788,12 +3788,15 @@ body {
 }
 .notif-close {
   position: absolute;
-  right: 16px;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
   background: none;
   border: none;
   color: rgba(255, 255, 255, 0.7);
   font-size: 18px;
   cursor: pointer;
+  padding: 4px 8px;
 }
 
 /* ===== COUNTDOWN TIMER ===== */
