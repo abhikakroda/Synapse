@@ -339,7 +339,7 @@ if (!courseKey) {
       <div class="countdown-banner"><span class="countdown-label">Batch starts in</span><div class="countdown-timer" id="courseCountdown"></div></div><div class="seats-counter"><span class="pulse-dot"></span> Only <span id="seatsLeft">14</span> seats left</div>` : ""}
     </div>
     <figure class="course-poster">
-      <img src="${course.poster}" alt="${course.title} course poster" />
+      <img src="${course.poster}" alt="${course.title} course poster" loading="lazy" decoding="async" />
       <figcaption>Mentor: ${course.mentor} <span>${course.role}</span></figcaption>
     </figure>
   </section>

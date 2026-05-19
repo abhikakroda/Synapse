@@ -52,6 +52,7 @@ button:focus:not(:focus-visible) {
 img {
   display: block;
   max-width: 100%;
+  loading: lazy;
 }
 
 .site-header {
