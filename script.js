@@ -111,4 +111,108 @@ leadForm?.addEventListener("submit", (event) => {
 
   statusMessage.textContent = `Thanks ${name}. Your enquiry for ${program} is ready to send to the Synapse team.`;
   leadForm.reset();
+  fireConfetti();
 });
+
+// Confetti
+function fireConfetti() {
+  const canvas = document.createElement("canvas");
+  canvas.style.cssText = "position:fixed;inset:0;z-index:9999;pointer-events:none";
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  document.body.appendChild(canvas);
+  const ctx = canvas.getContext("2d");
+  const pieces = Array.from({ length: 120 }, () => ({
+    x: Math.random() * canvas.width,
+    y: Math.random() * -canvas.height,
+    r: Math.random() * 6 + 4,
+    dx: (Math.random() - 0.5) * 4,
+    dy: Math.random() * 4 + 2,
+    color: ["#343aa4", "#25d366", "#ffd700", "#ec7a38", "#646cff"][Math.floor(Math.random() * 5)],
+    rot: Math.random() * 360
+  }));
+  let frame = 0;
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    pieces.forEach(p => {
+      p.x += p.dx; p.y += p.dy; p.rot += 3;
+      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot * Math.PI / 180);
+      ctx.fillStyle = p.color; ctx.fillRect(-p.r / 2, -p.r / 2, p.r, p.r * 0.6);
+      ctx.restore();
+    });
+    frame++;
+    if (frame < 120) requestAnimationFrame(draw);
+    else canvas.remove();
+  }
+  draw();
+}
+
+// Sticky enroll bar
+(function stickyBar() {
+  const bar = document.createElement("div");
+  bar.className = "sticky-enroll-bar";
+  bar.innerHTML = `<span>AI & ML Internship — ₹999 (80% off)</span><a class="btn btn-primary" href="course.html?course=ai-ml">Enroll Now</a>`;
+  document.body.appendChild(bar);
+  const hero = document.querySelector(".hero");
+  if (!hero) return;
+  const observer = new IntersectionObserver(([e]) => {
+    bar.classList.toggle("visible", !e.isIntersecting);
+  }, { threshold: 0 });
+  observer.observe(hero);
+})();
+
+// Live activity feed
+(function activityFeed() {
+  const names = ["Rahul from Delhi", "Priya from Mumbai", "Arjun from Bangalore", "Sneha from Pune", "Vikram from Jaipur", "Ananya from Hyderabad", "Karan from Chennai", "Neha from Lucknow"];
+  const actions = ["just enrolled", "joined the AI & ML batch", "signed up for the internship", "registered for the workshop"];
+  function showToast() {
+    const toast = document.createElement("div");
+    toast.className = "activity-toast";
+    const name = names[Math.floor(Math.random() * names.length)];
+    const action = actions[Math.floor(Math.random() * actions.length)];
+    const mins = Math.floor(Math.random() * 5) + 1;
+    toast.innerHTML = `<strong>${name}</strong> ${action} <small>${mins} min ago</small>`;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.classList.add("show"), 50);
+    setTimeout(() => { toast.classList.remove("show"); setTimeout(() => toast.remove(), 400); }, 4000);
+  }
+  setTimeout(showToast, 5000);
+  setInterval(showToast, 15000);
+})();
+
+// Exit-intent popup
+(function exitIntent() {
+  let shown = false;
+  document.addEventListener("mouseout", (e) => {
+    if (shown || e.clientY > 5) return;
+    shown = true;
+    const overlay = document.createElement("div");
+    overlay.className = "exit-popup-overlay";
+    overlay.innerHTML = `<div class="exit-popup"><button class="exit-close" aria-label="Close">✕</button><h3>Wait! Get 10% extra off</h3><p>Use code <strong>STAY10</strong> at checkout for an additional 10% discount on any course.</p><a class="btn btn-primary" href="course.html?course=ai-ml">Claim Offer</a></div>`;
+    document.body.appendChild(overlay);
+    overlay.querySelector(".exit-close").onclick = () => overlay.remove();
+    overlay.addEventListener("click", (ev) => { if (ev.target === overlay) overlay.remove(); });
+  });
+})();
+
+// Animated student counter
+(function animateCounters() {
+  const counters = document.querySelectorAll("[data-count]");
+  if (!counters.length) return;
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (!entry.isIntersecting) return;
+      const el = entry.target;
+      const target = parseInt(el.dataset.count);
+      let current = 0;
+      const step = Math.ceil(target / 40);
+      const interval = setInterval(() => {
+        current += step;
+        if (current >= target) { current = target; clearInterval(interval); }
+        el.textContent = current + "+";
+      }, 30);
+      observer.unobserve(el);
+    });
+  }, { threshold: 0.5 });
+  counters.forEach(el => observer.observe(el));
+})();

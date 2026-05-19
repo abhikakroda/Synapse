@@ -326,7 +326,7 @@ if (!courseKey) {
         <a class="btn btn-primary" href="index.html#contact">${course.cta}</a>
         <span class="coming-soon-badge">${course.status}</span>
       </div>
-      ${courseKey === "ai-ml" ? `<div class="countdown-banner"><span class="countdown-label">Batch starts in</span><div class="countdown-timer" id="courseCountdown"></div></div>` : ""}
+      ${courseKey === "ai-ml" ? `<div class="countdown-banner"><span class="countdown-label">Batch starts in</span><div class="countdown-timer" id="courseCountdown"></div></div><div class="seats-counter"><span class="pulse-dot"></span> Only <span id="seatsLeft">14</span> seats left</div>` : ""}
     </div>
     <figure class="course-poster">
       <img src="${course.poster}" alt="${course.title} course poster" />
