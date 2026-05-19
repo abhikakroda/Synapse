@@ -3774,11 +3774,15 @@ body {
   align-items: center;
   justify-content: center;
   gap: 12px;
-  padding: 12px 44px 12px 20px;
+  padding: 12px 20px;
   background: linear-gradient(135deg, #28293c, #343aa4);
   color: #ffffff;
   font-size: 14px;
   font-weight: 700;
+  text-align: center;
+}
+.notification-bar span {
+  flex: 1;
   text-align: center;
 }
 .notification-bar a {
@@ -3787,16 +3791,17 @@ body {
   font-weight: 800;
 }
 .notif-close {
-  position: absolute;
-  right: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  background: none;
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  background: rgba(255, 255, 255, 0.15);
   border: none;
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 18px;
+  border-radius: 50%;
+  color: #ffffff;
+  font-size: 14px;
   cursor: pointer;
-  padding: 4px 8px;
 }
 
 /* ===== COUNTDOWN TIMER ===== */
@@ -4540,7 +4545,7 @@ body {
   }
 
   .certificate-card::before {
-    inset: 12px;
+    display: none;
   }
 
   .certificate-card h3 {
@@ -4557,6 +4562,7 @@ body {
 
   .certificate-card p {
     font-size: 12px;
+    margin-top: 28px;
   }
 
   .cert-footer {
