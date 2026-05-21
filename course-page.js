@@ -65,7 +65,7 @@ const courseCatalog = {
     summary:
       "Go from security basics to practical ethical hacking, network defense, Kali Linux tools, bug hunting and career roadmap.",
     status: "Coming Soon",
-    cta: "Notify Me",
+    cta: "Show Interest",
     price: "Coming Soon",
     bundle: "Enrollment will open after the AI & ML launch.",
     highlights: ["Ethical hacking basics", "Network security", "Kali Linux", "Bug hunting"],
@@ -277,9 +277,22 @@ if (!courseKey) {
         ${renderPrice(course)}
       </div>
       <div class="course-actions">
-        <a class="btn btn-primary" href="index.html#contact">${course.cta}</a>
+        <a class="btn btn-primary" href="${resolvedCourseKey === "cybersecurity" ? "#cyberInterest" : "index.html#contact"}">${course.cta}</a>
         <span class="coming-soon-badge">${course.status}</span>
       </div>
+      ${resolvedCourseKey === "cybersecurity" ? `
+      <form class="interest-box" id="cyberInterest">
+        <label>
+          Full name
+          <input type="text" name="name" placeholder="Enter your name" required />
+        </label>
+        <label>
+          Mobile number
+          <input type="tel" name="phone" placeholder="+91 98765 43210" required />
+        </label>
+        <button class="btn btn-primary" type="submit">Show Interest</button>
+        <p class="interest-status" role="status" aria-live="polite"></p>
+      </form>` : ""}
       ${courseKey === "ai-ml" ? `
       <div class="payment-box">
         <button class="coupon-toggle" id="couponToggle">🏷 Apply Coupon</button>
@@ -288,6 +301,7 @@ if (!courseKey) {
           <button class="btn btn-secondary" id="applyCoupon">Apply</button>
         </div>
         <p class="coupon-status" id="couponStatus"></p>
+        <p class="refund-policy-note">Strict no-refund policy. Confirm your enrollment before payment.</p>
         <button class="btn btn-primary pay-btn" id="payBtn">Pay ₹999</button>
       </div>
       <div class="countdown-banner"><span class="countdown-label">Batch starts in</span><div class="countdown-timer" id="courseCountdown"></div></div><div class="seats-counter"><span class="pulse-dot"></span> Only <span id="seatsLeft">14</span> seats left</div>` : ""}
@@ -388,6 +402,56 @@ nav?.addEventListener("click", (event) => {
   }
   update();
   setInterval(update, 1000);
+})();
+
+// Cybersecurity interest form
+(function initCyberInterestForm() {
+  const form = document.getElementById("cyberInterest");
+  if (!form) return;
+
+  const status = form.querySelector(".interest-status");
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+
+    const formData = new FormData(form);
+    const name = String(formData.get("name") || "").trim();
+    const phone = String(formData.get("phone") || "").trim();
+
+    if (!name || !phone) {
+      status.textContent = "Please enter your name and mobile number.";
+      status.classList.add("is-error");
+      return;
+    }
+
+    status.textContent = "Saving your interest...";
+    status.classList.remove("is-error", "is-success");
+
+    try {
+      if (typeof saveLead !== "function") {
+        throw new Error("Lead saving is not available");
+      }
+
+      const result = await saveLead({
+        name,
+        phone,
+        program: "Cybersecurity",
+        college: "",
+        message: "Cybersecurity course interest"
+      });
+
+      if (result?.error) {
+        throw result.error;
+      }
+
+      form.reset();
+      status.textContent = "Thanks. Your interest in Cybersecurity has been saved.";
+      status.classList.add("is-success");
+    } catch (error) {
+      status.textContent = "Could not save right now. Please try again.";
+      status.classList.add("is-error");
+    }
+  });
 })();
 
 // Coupon & Razorpay Payment

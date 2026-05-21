@@ -164,25 +164,6 @@ function fireConfetti() {
   observer.observe(hero);
 })();
 
-// Live activity feed
-(function activityFeed() {
-  const names = ["Rahul from Delhi", "Priya from Mumbai", "Arjun from Bangalore", "Sneha from Pune", "Vikram from Jaipur", "Ananya from Hyderabad", "Karan from Chennai", "Neha from Lucknow"];
-  const actions = ["just enrolled", "joined the AI & ML batch", "signed up for the internship", "registered for the workshop"];
-  function showToast() {
-    const toast = document.createElement("div");
-    toast.className = "activity-toast";
-    const name = names[Math.floor(Math.random() * names.length)];
-    const action = actions[Math.floor(Math.random() * actions.length)];
-    const mins = Math.floor(Math.random() * 5) + 1;
-    toast.innerHTML = `<strong>${name}</strong> ${action} <small>${mins} min ago</small>`;
-    document.body.appendChild(toast);
-    setTimeout(() => toast.classList.add("show"), 50);
-    setTimeout(() => { toast.classList.remove("show"); setTimeout(() => toast.remove(), 400); }, 4000);
-  }
-  setTimeout(showToast, 12000);
-  setInterval(showToast, 45000);
-})();
-
 // Exit-intent popup
 (function exitIntent() {
   let shown = false;
@@ -196,28 +177,6 @@ function fireConfetti() {
     overlay.querySelector(".exit-close").onclick = () => overlay.remove();
     overlay.addEventListener("click", (ev) => { if (ev.target === overlay) overlay.remove(); });
   });
-})();
-
-// Animated student counter
-(function animateCounters() {
-  const counters = document.querySelectorAll("[data-count]");
-  if (!counters.length) return;
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (!entry.isIntersecting) return;
-      const el = entry.target;
-      const target = parseInt(el.dataset.count);
-      let current = 0;
-      const step = Math.ceil(target / 40);
-      const interval = setInterval(() => {
-        current += step;
-        if (current >= target) { current = target; clearInterval(interval); }
-        el.textContent = current + "+";
-      }, 30);
-      observer.unobserve(el);
-    });
-  }, { threshold: 0.5 });
-  counters.forEach(el => observer.observe(el));
 })();
 
 // Back to top button
