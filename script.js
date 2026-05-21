@@ -54,9 +54,7 @@ const updateSeoUrls = () => {
         name: "Synapse career tracks",
         itemListElement: [
           ["AI & ML Internship", "course.html?course=ai-ml"],
-          ["Cybersecurity Course", "course.html?course=cybersecurity"],
-          ["Aptitude & Placement Training", "course.html?course=aptitude-placement"],
-          ["IoT Course", "course.html?course=iot"]
+          ["Cybersecurity Course", "course.html?course=cybersecurity"]
         ].map(([name, url], index) => ({
           "@type": "ListItem",
           position: index + 1,

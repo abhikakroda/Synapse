@@ -78,52 +78,6 @@ const courseCatalog = {
       "Security project, certificate review and cybersecurity career roadmap"
     ],
     projects: ["Network scan report", "OWASP demo lab", "Security checklist for a web app"]
-  },
-  "aptitude-placement": {
-    title: "Aptitude & Placement",
-    eyebrow: "Complete course",
-    poster: "assets/course-posters/aptitude-placement.png",
-    mentor: "Afran Choudhary",
-    role: "Aptitude & Placement Trainer",
-    summary:
-      "Prepare for campus hiring with quantitative aptitude, logical reasoning, verbal ability, resume building, HR prep and mock tests.",
-    status: "Coming Soon",
-    cta: "Notify Me",
-    price: "Coming Soon",
-    bundle: "Enrollment will open after the AI & ML launch.",
-    highlights: ["Quantitative aptitude", "Logical reasoning", "Verbal ability", "Interview prep"],
-    syllabus: [
-      "Number system, percentages, ratio, time and work, speed and distance",
-      "Logical reasoning, puzzles, seating arrangement and data interpretation",
-      "Verbal ability, grammar, reading comprehension and communication practice",
-      "Resume building, LinkedIn basics and project storytelling",
-      "HR interview questions, group discussion and confidence practice",
-      "Mock tests, placement strategy and improvement plan"
-    ],
-    projects: ["Resume improvement sprint", "Mock interview scorecard", "Campus placement tracker"]
-  },
-  iot: {
-    title: "IoT Mastery",
-    eyebrow: "Complete course",
-    poster: "assets/course-posters/iot.png",
-    mentor: "Abhishek Meena",
-    role: "IoT Mentor",
-    summary:
-      "Build practical IoT skills with microcontrollers, sensors, cloud dashboards, automation and hands-on connected device projects.",
-    status: "Coming Soon",
-    cta: "Notify Me",
-    price: "Coming Soon",
-    bundle: "Enrollment will open after the AI & ML launch.",
-    highlights: ["Arduino basics", "Sensors", "Cloud dashboard", "Automation"],
-    syllabus: [
-      "IoT fundamentals, hardware workflow and safety basics",
-      "Arduino/ESP board setup, digital and analog input-output",
-      "Sensor integration, ultrasonic, temperature, light and motion modules",
-      "Wi-Fi connectivity, MQTT/HTTP basics and cloud data logging",
-      "Dashboard design, alerts, automation and real-world applications",
-      "Final IoT project with documentation, demo and certificate review"
-    ],
-    projects: ["Smart room monitor", "Sensor dashboard", "Wi-Fi automation prototype"]
   }
 };
 
@@ -163,7 +117,7 @@ const updateCourseSeo = (course, key) => {
     : "Synapse Courses, Pricing & Internship Syllabus";
   const description = course
     ? `${course.summary} See syllabus, projects, mentor details, pricing, certificate support, and batch status.`
-    : "Compare Synapse AI & ML, cybersecurity, aptitude and placement, and IoT internship courses with syllabus, mentor details, projects, pricing, and batch status.";
+    : "Compare Synapse AI & ML and cybersecurity internship courses with syllabus, mentor details, projects, pricing, and batch status.";
 
   if (key) {
     pageUrl.searchParams.set("course", key);
@@ -282,10 +236,10 @@ if (!courseKey) {
   root.innerHTML = `
     <section class="all-courses-hero section-pad">
       <p class="section-label">Course</p>
-      <h1>All 4 courses. See more for full details.</h1>
+      <h1>All courses. See more for full details.</h1>
       <p>
-        AI & ML is live from 20 June 2026 with early bird pricing. The other
-        three tracks are listed here and will open soon.
+        AI & ML is live from 20 June 2026 with early bird pricing. Cybersecurity
+        is listed here and will open soon.
       </p>
       <div class="course-summary-pricing">
         <article class="sale-summary-card">
