@@ -98,6 +98,28 @@ const parseListValue = (value) => {
   return String(value).split("\n").map((item) => item.trim()).filter(Boolean);
 };
 
+const readLocalRows = (key) => {
+  try {
+    return JSON.parse(localStorage.getItem(key) || "[]");
+  } catch {
+    return [];
+  }
+};
+
+const mergeAdminRows = (localRows, remoteRows, idKey) => {
+  const map = new Map();
+  [...localRows, ...remoteRows].forEach((row) => {
+    const id = row?.[idKey];
+    if (!id) return;
+    if (row.deleted) {
+      map.delete(id);
+      return;
+    }
+    map.set(id, row);
+  });
+  return Array.from(map.values());
+};
+
 const applyCourseOverrides = (rows) => {
   rows.forEach((row) => {
     const slug = row.slug;
@@ -152,17 +174,26 @@ const applyCouponOverrides = (rows) => {
 
 async function loadAdminCourseConfig() {
   const client = typeof getSupabaseClient === "function" ? getSupabaseClient() : null;
-  if (!client) return;
+  const localCourses = readLocalRows("synapse_admin_courses");
+  const localCoupons = readLocalRows("synapse_admin_coupons");
 
   try {
+    if (!client) {
+      applyCourseOverrides(localCourses);
+      applyCouponOverrides(localCoupons);
+      return;
+    }
+
     const [{ data: courseRows }, { data: couponRows }] = await Promise.all([
       client.from("admin_courses").select("*"),
       client.from("admin_coupons").select("*").eq("active", true)
     ]);
-    applyCourseOverrides(courseRows || []);
-    applyCouponOverrides(couponRows || []);
+    applyCourseOverrides(mergeAdminRows(localCourses, courseRows || [], "slug"));
+    applyCouponOverrides(mergeAdminRows(localCoupons, couponRows || [], "code"));
   } catch (error) {
     console.warn("Admin course config unavailable", error);
+    applyCourseOverrides(localCourses);
+    applyCouponOverrides(localCoupons);
   }
 }
 
@@ -318,20 +349,22 @@ if (!courseKey) {
   root.innerHTML = `
     <section class="all-courses-hero section-pad">
       <p class="section-label">Course</p>
-      <h1>All courses. See more for full details.</h1>
+      <h1>All courses. Add, edit, and publish from admin.</h1>
       <p>
-        AI & ML is live from 20 June 2026 with early bird pricing. Cybersecurity
-        is listed here and will open soon.
+        Browse every course currently saved for Synapse. New courses added by the team
+        appear here with their own details page.
       </p>
       <div class="course-summary-pricing">
-        <article class="sale-summary-card">
-          <span>AI & ML early bird sale</span>
-          <div>
-            <del>₹4,999</del>
-            <strong>₹999</strong>
-            <em>80% OFF</em>
-          </div>
-        </article>
+        ${Object.values(courseCatalog).slice(0, 3).map((item) => `
+          <article class="sale-summary-card">
+            <span>${item.title}</span>
+            <div>
+              ${item.oldPrice ? `<del>${item.oldPrice}</del>` : ""}
+              <strong>${item.price}</strong>
+              ${item.discount ? `<em>${item.discount}</em>` : ""}
+            </div>
+          </article>
+        `).join("")}
       </div>
     </section>
 
