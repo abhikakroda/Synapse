@@ -96,6 +96,21 @@ create table if not exists public.admin_coupons (
   updated_at timestamptz default now()
 );
 
+create or replace function public.redeem_admin_coupon(coupon_code text)
+returns void
+language sql
+set search_path = ''
+as $$
+  update public.admin_coupons
+  set used_count = coalesce(used_count, 0) + 1,
+      updated_at = now()
+  where code = upper(trim(coupon_code))
+    and active = true
+    and deleted = false
+    and (expires_at is null or expires_at > now())
+    and (coalesce(usage_limit, 0) = 0 or coalesce(used_count, 0) < usage_limit);
+$$;
+
 alter table public.leads add column if not exists id uuid default gen_random_uuid();
 alter table public.leads add column if not exists name text;
 alter table public.leads add column if not exists phone text;

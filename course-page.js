@@ -85,13 +85,18 @@ const params = new URLSearchParams(window.location.search);
 const courseKey = params.get("course");
 const root = document.querySelector("#courseRoot");
 let adminCourseRefreshTimer = null;
-let checkoutCoupons = {
+const defaultCheckoutCoupons = {
   "STAY10": { discount: 10, type: "percent" },
   "SYNAPSE100": { discount: 100, type: "flat" },
   "EARLY50": { discount: 50, type: "flat" },
   "REFER100": { discount: 100, type: "flat" },
   "MANSOOR": { discount: 100, type: "percent" }
 };
+let checkoutCoupons = { ...defaultCheckoutCoupons };
+
+const normalizeCouponCode = (value) => String(value || "").trim().toUpperCase();
+const normalizeSlug = (value) => String(value || "").trim().toLowerCase().replace(/[^a-z0-9-]+/g, "-").replace(/(^-|-$)/g, "");
+const getCurrentCourseKey = () => normalizeSlug(courseCatalog[courseKey] ? courseKey : "ai-ml");
 
 const parseListValue = (value) => {
   if (Array.isArray(value)) return value.filter(Boolean);
@@ -154,23 +159,26 @@ const applyCourseOverrides = (rows) => {
 };
 
 const applyCouponOverrides = (rows) => {
-  const activeCoupons = {};
+  const activeCoupons = { ...defaultCheckoutCoupons };
+  const currentCourseKey = getCurrentCourseKey();
+
   rows.forEach((row) => {
     const expiresAt = row.expires_at ? new Date(row.expires_at).getTime() : 0;
     const usageLimit = Number(row.usage_limit || 0);
     const usedCount = Number(row.used_count || 0);
-    if (!row.code || row.deleted || row.active === false || (expiresAt && expiresAt < Date.now())) return;
+    const code = normalizeCouponCode(row.code);
+    const couponCourse = normalizeSlug(row.course_slug || currentCourseKey);
+    if (!code || row.deleted || row.active === false || (expiresAt && expiresAt < Date.now())) return;
     if (usageLimit > 0 && usedCount >= usageLimit) return;
-    if (row.course_slug && row.course_slug !== "ai-ml") return;
-    activeCoupons[String(row.code).toUpperCase()] = {
+    if (couponCourse && couponCourse !== currentCourseKey && couponCourse !== "all") return;
+    activeCoupons[code] = {
       discount: Number(row.discount || 0),
-      type: row.type === "percent" ? "percent" : "flat"
+      type: row.type === "percent" ? "percent" : "flat",
+      courseSlug: couponCourse || currentCourseKey
     };
   });
 
-  if (Object.keys(activeCoupons).length) {
-    checkoutCoupons = activeCoupons;
-  }
+  checkoutCoupons = activeCoupons;
 };
 
 async function loadAdminCourseConfig() {
@@ -624,11 +632,13 @@ function initPayment() {
   const paymentCourse = courseCatalog["ai-ml"] || {};
   const basePrice = Number(String(paymentCourse.price || "999").replace(/\D/g, "")) || 999;
   let price = basePrice;
+  let appliedCouponCode = "";
 
   couponBtn?.addEventListener("click", () => {
-    const code = couponInput.value.trim().toUpperCase();
+    const code = normalizeCouponCode(couponInput.value);
     const coupon = checkoutCoupons[code];
     if (coupon) {
+      appliedCouponCode = code;
       if (coupon.type === "percent") {
         price = Math.round(basePrice - (basePrice * coupon.discount / 100));
       } else {
@@ -639,6 +649,7 @@ function initPayment() {
       couponStatus.style.color = "#155f3c";
       payBtn.textContent = price === 0 ? "Enroll Free" : `Pay ₹${price}`;
     } else {
+      appliedCouponCode = "";
       couponStatus.textContent = "✗ Invalid coupon code";
       couponStatus.style.color = "#d32f2f";
     }
@@ -667,6 +678,7 @@ function initPayment() {
           amount: 0
         });
       }
+      await recordCouponUsage(appliedCouponCode);
       alert("🎉 Congratulations! You have been enrolled for free.");
       window.location.href = "dashboard.html";
       return;
@@ -693,6 +705,7 @@ function initPayment() {
             amount: price
           });
         }
+        await recordCouponUsage(appliedCouponCode);
         alert("Payment successful! ID: " + response.razorpay_payment_id);
         window.location.href = "dashboard.html";
       },
@@ -701,6 +714,19 @@ function initPayment() {
     const rzp = new Razorpay(options);
     rzp.open();
   });
+}
+
+async function recordCouponUsage(code) {
+  const couponCode = normalizeCouponCode(code);
+  if (!couponCode) return;
+
+  try {
+    const client = typeof getSupabaseClient === "function" ? getSupabaseClient() : null;
+    if (!client?.rpc) return;
+    await client.rpc("redeem_admin_coupon", { coupon_code: couponCode });
+  } catch (error) {
+    console.warn("Coupon usage could not be recorded", error);
+  }
 }
 
 renderCoursePage();
