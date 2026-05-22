@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="theme-color" content="#111827" />
+    <title>Synapse Team Admin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="admin.css" />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  </head>
+  <body>
+    <main class="admin-shell">
+      <section class="access-panel" id="accessPanel">
+        <div>
+          <p class="eyebrow">Private portal</p>
+          <h1>Synapse Team</h1>
+          <p>Admin workspace for leads, purchases, student records, workshops, courses, and coupons.</p>
+        </div>
+        <form class="access-form" id="accessForm">
+          <label>
+            Team access code
+            <input type="password" id="accessCode" placeholder="Enter access code" autocomplete="current-password" required />
+          </label>
+          <button type="submit">Open dashboard</button>
+          <p class="access-status" id="accessStatus" role="status"></p>
+        </form>
+      </section>
+
+      <section class="dashboard" id="dashboard" hidden>
+        <div class="team-topbar">
+          <a class="brand" href="../index.html" aria-label="Synapse home">
+            <span class="brand-mark">S</span>
+            <span>Synapse</span>
+          </a>
+          <nav class="team-nav" aria-label="Admin navigation">
+            <a href="../index.html">Home</a>
+            <a href="../course.html">Courses</a>
+            <a href="../workshops.html">Workshops</a>
+            <a href="#records">Records</a>
+            <a class="nav-internship" href="../course.html?course=ai-ml">Summer Internship</a>
+          </nav>
+          <div class="header-actions">
+            <button class="ghost-btn" id="refreshBtn" type="button">Refresh</button>
+            <button class="dark-btn" id="lockBtn" type="button">Lock</button>
+          </div>
+        </div>
+
+        <header class="admin-header">
+          <div>
+            <p class="eyebrow">Admin dashboard</p>
+            <h1>Synapse Team</h1>
+            <p>Same Synapse academy workspace, with controls for course details, workshops, coupons, and student records.</p>
+          </div>
+        </header>
+
+        <section class="metric-grid" aria-label="Admin metrics">
+          <article>
+            <span>Total leads</span>
+            <strong id="leadCount">0</strong>
+          </article>
+          <article>
+            <span>Purchases</span>
+            <strong id="purchaseCount">0</strong>
+          </article>
+          <article>
+            <span>Students</span>
+            <strong id="userCount">0</strong>
+          </article>
+          <article>
+            <span>Revenue</span>
+            <strong id="revenueTotal">₹0</strong>
+          </article>
+        </section>
+
+        <section class="manager-grid" aria-label="Admin content managers">
+          <div class="manager-launcher">
+            <button class="manager-option-card" type="button" data-open-manager="workshop">
+              <span>Workshop</span>
+              <strong>Add workshop</strong>
+              <small>Create a new live or past workshop.</small>
+            </button>
+            <button class="manager-option-card" type="button" data-open-manager="course">
+              <span>Course</span>
+              <strong>Add course</strong>
+              <small>Create a new course or load an old one.</small>
+            </button>
+            <button class="manager-option-card" type="button" data-open-manager="coupon">
+              <span>Coupon</span>
+              <strong>Add coupon</strong>
+              <small>Create and manage discount codes.</small>
+            </button>
+          </div>
+
+          <form class="manager-card" id="workshopForm" data-manager-panel="workshop" hidden>
+            <div class="manager-title">
+              <span>Workshop</span>
+              <strong>Add or update workshop</strong>
+            </div>
+            <div class="preset-actions" aria-label="Workshop actions">
+              <button class="ghost-btn" type="button" id="newWorkshopBtn">New workshop</button>
+            </div>
+            <div class="form-grid">
+              <label>Workshop ID<input name="id" placeholder="agentic-ai-claude" required /></label>
+              <label>Title<input name="title" placeholder="Agentic AI & Claude AI" required /></label>
+              <label>Host<input name="host" placeholder="Udhay" /></label>
+              <label>Status
+                <select name="status">
+                  <option value="upcoming">Upcoming</option>
+                  <option value="past">Past</option>
+                </select>
+              </label>
+              <label>Day<input name="day" placeholder="SUN" /></label>
+              <label>Date<input name="date" placeholder="25" /></label>
+              <label>Month<input name="month" placeholder="May" /></label>
+              <label>Time<input name="time" placeholder="Sunday, 4:00 PM IST" /></label>
+              <label class="wide">Description<textarea name="description" placeholder="Short workshop description"></textarea></label>
+              <label class="wide">YouTube URL<input name="youtube_url" type="url" placeholder="https://youtube.com/live/..." /></label>
+              <label class="wide">Google Meet URL<input name="google_meet_url" type="url" placeholder="https://meet.google.com/..." /></label>
+              <label class="wide">Details<textarea name="details" placeholder="One point per line"></textarea></label>
+              <label class="wide">Resource links<textarea name="resources" placeholder="Slides|https://...\nNotebook|https://..."></textarea></label>
+            </div>
+            <button class="dark-btn" type="submit">Save workshop</button>
+            <p class="form-status" id="workshopStatus"></p>
+          </form>
+
+          <form class="manager-card" id="courseForm" data-manager-panel="course" hidden>
+            <div class="manager-title">
+              <span>Course</span>
+              <strong>Add or update course</strong>
+            </div>
+            <div class="preset-actions" aria-label="Load existing course details">
+              <button class="ghost-btn" type="button" id="newCourseBtn">New course</button>
+              <button class="ghost-btn" type="button" data-course-preset="ai-ml">Load AI & ML details</button>
+              <button class="ghost-btn" type="button" data-course-preset="cybersecurity">Load Cybersecurity details</button>
+            </div>
+            <div class="form-grid">
+              <label>Course slug<input name="slug" placeholder="ai-ml" required /></label>
+              <label>Title<input name="title" placeholder="AI & ML" required /></label>
+              <label>Mentor<input name="mentor" placeholder="Udhay" /></label>
+              <label>Role<input name="role" placeholder="AI & ML Instructor" /></label>
+              <label>Status<input name="status" placeholder="Live from 20 June 2026" /></label>
+              <label>CTA<input name="cta" placeholder="Apply Now" /></label>
+              <label>Price<input name="price" placeholder="₹999" /></label>
+              <label>Old price<input name="old_price" placeholder="₹4,999" /></label>
+              <label>Discount<input name="discount" placeholder="80% OFF" /></label>
+              <label>Duration<input name="duration" placeholder="45 Days" /></label>
+              <label class="wide">Course PNG / poster URL<input name="poster" placeholder="assets/course-posters/ai-ml.png" /></label>
+              <label class="wide">Summary<textarea name="summary" placeholder="Course summary"></textarea></label>
+              <label class="wide">Bundle text<input name="bundle" placeholder="Early bird sale price" /></label>
+              <label class="wide">Highlights<textarea name="highlights" placeholder="One highlight per line"></textarea></label>
+              <label class="wide">Syllabus<textarea name="syllabus" placeholder="One syllabus point per line"></textarea></label>
+              <label class="wide">Projects<textarea name="projects" placeholder="One project per line"></textarea></label>
+            </div>
+            <button class="dark-btn" type="submit">Save course</button>
+            <p class="form-status" id="courseStatus"></p>
+          </form>
+
+          <form class="manager-card compact-manager" id="couponForm" data-manager-panel="coupon" hidden>
+            <div class="manager-title">
+              <span>Coupon</span>
+              <strong>Create offer code</strong>
+            </div>
+            <div class="form-grid">
+              <label>Code<input name="code" placeholder="SYNAPSE100" required /></label>
+              <label>Course slug<input name="course_slug" placeholder="ai-ml" /></label>
+              <label>Type
+                <select name="type">
+                  <option value="flat">Flat amount</option>
+                  <option value="percent">Percent</option>
+                </select>
+              </label>
+              <label>Discount<input name="discount" type="number" min="0" placeholder="100" required /></label>
+              <label>Usage limit<input name="usage_limit" type="number" min="0" placeholder="50" /></label>
+              <label>Used count<input name="used_count" type="number" min="0" placeholder="0" /></label>
+              <label>Active
+                <select name="active">
+                  <option value="true">Active</option>
+                  <option value="false">Disabled</option>
+                </select>
+              </label>
+              <label>Expire date and time<input name="expires_at" type="datetime-local" /></label>
+            </div>
+            <button class="dark-btn" type="submit">Save coupon</button>
+            <button class="danger-btn" id="deleteCouponBtn" type="button">Delete coupon</button>
+            <p class="form-status" id="couponStatus"></p>
+          </form>
+        </section>
+
+        <section class="toolbar" id="records">
+          <div class="tabs" role="tablist" aria-label="Admin data views">
+            <button class="tab active" data-view="leads" type="button">Leads</button>
+            <button class="tab" data-view="purchases" type="button">Purchases</button>
+            <button class="tab" data-view="users" type="button">Students</button>
+            <button class="tab" data-view="workshops" type="button">Workshops</button>
+            <button class="tab" data-view="courses" type="button">Courses</button>
+            <button class="tab" data-view="coupons" type="button">Coupons</button>
+          </div>
+          <div class="table-tools">
+            <input type="search" id="searchInput" placeholder="Search current view" />
+            <button class="ghost-btn" id="exportBtn" type="button">Export CSV</button>
+          </div>
+        </section>
+
+        <section class="table-card">
+          <div class="table-title">
+            <div>
+              <h2 id="viewTitle">Leads</h2>
+              <p id="viewSubtitle">Students who requested details or showed interest.</p>
+            </div>
+            <span id="loadStatus">Ready</span>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead id="tableHead"></thead>
+              <tbody id="tableBody"></tbody>
+            </table>
+          </div>
+          <p class="empty-state" id="emptyState" hidden>No records found.</p>
+        </section>
+      </section>
+    </main>
+
+    <script src="../supabase.js?v=4"></script>
+    <script src="admin.js?v=2"></script>
+  </body>
+</html>

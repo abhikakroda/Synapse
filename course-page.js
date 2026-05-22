@@ -84,6 +84,7 @@ let courseCatalog = {
 const params = new URLSearchParams(window.location.search);
 const courseKey = params.get("course");
 const root = document.querySelector("#courseRoot");
+let adminCourseRefreshTimer = null;
 let checkoutCoupons = {
   "STAY10": { discount: 10, type: "percent" },
   "SYNAPSE100": { discount: 100, type: "flat" },
@@ -195,6 +196,35 @@ async function loadAdminCourseConfig() {
     applyCourseOverrides(localCourses);
     applyCouponOverrides(localCoupons);
   }
+}
+
+function refreshAdminCourseConfig() {
+  if (adminCourseRefreshTimer) {
+    clearTimeout(adminCourseRefreshTimer);
+  }
+
+  adminCourseRefreshTimer = setTimeout(async () => {
+    await loadAdminCourseConfig();
+    renderCoursePage();
+  }, 120);
+}
+
+function watchAdminCourseConfig() {
+  const client = typeof getSupabaseClient === "function" ? getSupabaseClient() : null;
+
+  window.addEventListener("storage", (event) => {
+    if (event.key === "synapse_admin_courses" || event.key === "synapse_admin_coupons") {
+      refreshAdminCourseConfig();
+    }
+  });
+
+  if (!client?.channel) return;
+
+  client
+    .channel("synapse-course-config")
+    .on("postgres_changes", { event: "*", schema: "public", table: "admin_courses" }, refreshAdminCourseConfig)
+    .on("postgres_changes", { event: "*", schema: "public", table: "admin_coupons" }, refreshAdminCourseConfig)
+    .subscribe();
 }
 
 const setMetaContent = (selector, content) => {
@@ -342,6 +372,8 @@ const renderCourseCard = ([key, item]) => `
 `;
 
 function renderCoursePage() {
+if (!root) return;
+
 if (!courseKey) {
   document.title = "All Courses & Pricing | Synapse";
   updateCourseSeo();
@@ -349,10 +381,10 @@ if (!courseKey) {
   root.innerHTML = `
     <section class="all-courses-hero section-pad">
       <p class="section-label">Course</p>
-      <h1>All courses. Add, edit, and publish from admin.</h1>
+      <h1>All courses. See more for full details.</h1>
       <p>
-        Browse every course currently saved for Synapse. New courses added by the team
-        appear here with their own details page.
+        Choose a Synapse course, compare syllabus, pricing, mentor details,
+        and open the full course page before enrolling.
       </p>
       <div class="course-summary-pricing">
         ${Object.values(courseCatalog).slice(0, 3).map((item) => `
@@ -671,6 +703,14 @@ function initPayment() {
   });
 }
 
-loadAdminCourseConfig().finally(renderCoursePage);
+renderCoursePage();
+loadAdminCourseConfig()
+  .then(() => {
+    renderCoursePage();
+    watchAdminCourseConfig();
+  })
+  .catch(() => {
+    watchAdminCourseConfig();
+  });
 
 // Auth handled by Clerk via supabase.js initClerkAuth()

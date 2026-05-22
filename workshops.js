@@ -161,7 +161,7 @@ async function loadAdminWorkshops() {
 
   try {
     if (client) {
-    const { data, error } = await client.from("admin_workshops").select("*");
+      const { data, error } = await client.from("admin_workshops").select("*");
       if (!error) rows = mergeWorkshops(rows, data || []);
     }
   } catch (error) {
