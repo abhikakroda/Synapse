@@ -1,4 +1,4 @@
-const courseCatalog = {
+let courseCatalog = {
   "ai-ml": {
     title: "AI & ML",
     eyebrow: "Complete course",
@@ -84,6 +84,87 @@ const courseCatalog = {
 const params = new URLSearchParams(window.location.search);
 const courseKey = params.get("course");
 const root = document.querySelector("#courseRoot");
+let checkoutCoupons = {
+  "STAY10": { discount: 10, type: "percent" },
+  "SYNAPSE100": { discount: 100, type: "flat" },
+  "EARLY50": { discount: 50, type: "flat" },
+  "REFER100": { discount: 100, type: "flat" },
+  "MANSOOR": { discount: 100, type: "percent" }
+};
+
+const parseListValue = (value) => {
+  if (Array.isArray(value)) return value.filter(Boolean);
+  if (!value) return [];
+  return String(value).split("\n").map((item) => item.trim()).filter(Boolean);
+};
+
+const applyCourseOverrides = (rows) => {
+  rows.forEach((row) => {
+    const slug = row.slug;
+    if (!slug) return;
+
+    courseCatalog[slug] = {
+      ...(courseCatalog[slug] || {}),
+      title: row.title || courseCatalog[slug]?.title || slug,
+      eyebrow: courseCatalog[slug]?.eyebrow || "Complete course",
+      poster: row.poster || courseCatalog[slug]?.poster || "assets/synopse-concept.png",
+      mentor: row.mentor || courseCatalog[slug]?.mentor || "Synapse Team",
+      role: row.role || courseCatalog[slug]?.role || "Mentor",
+      summary: row.summary || courseCatalog[slug]?.summary || "",
+      status: row.status || courseCatalog[slug]?.status || "Coming Soon",
+      cta: row.cta || courseCatalog[slug]?.cta || "Apply Now",
+      price: row.price || courseCatalog[slug]?.price || "Coming Soon",
+      oldPrice: row.old_price || courseCatalog[slug]?.oldPrice || "",
+      discount: row.discount || courseCatalog[slug]?.discount || "",
+      bundle: row.bundle || courseCatalog[slug]?.bundle || "",
+      duration: row.duration || courseCatalog[slug]?.duration || "",
+      mode: courseCatalog[slug]?.mode || "Online",
+      batchSize: courseCatalog[slug]?.batchSize || "",
+      certificate: courseCatalog[slug]?.certificate || "",
+      highlights: parseListValue(row.highlights).length ? parseListValue(row.highlights) : courseCatalog[slug]?.highlights || [],
+      syllabus: parseListValue(row.syllabus).length ? parseListValue(row.syllabus) : courseCatalog[slug]?.syllabus || [],
+      projects: parseListValue(row.projects).length ? parseListValue(row.projects) : courseCatalog[slug]?.projects || [],
+      whoIsItFor: courseCatalog[slug]?.whoIsItFor,
+      outcomes: courseCatalog[slug]?.outcomes
+    };
+  });
+};
+
+const applyCouponOverrides = (rows) => {
+  const activeCoupons = {};
+  rows.forEach((row) => {
+    const expiresAt = row.expires_at ? new Date(row.expires_at).getTime() : 0;
+    const usageLimit = Number(row.usage_limit || 0);
+    const usedCount = Number(row.used_count || 0);
+    if (!row.code || row.deleted || row.active === false || (expiresAt && expiresAt < Date.now())) return;
+    if (usageLimit > 0 && usedCount >= usageLimit) return;
+    if (row.course_slug && row.course_slug !== "ai-ml") return;
+    activeCoupons[String(row.code).toUpperCase()] = {
+      discount: Number(row.discount || 0),
+      type: row.type === "percent" ? "percent" : "flat"
+    };
+  });
+
+  if (Object.keys(activeCoupons).length) {
+    checkoutCoupons = activeCoupons;
+  }
+};
+
+async function loadAdminCourseConfig() {
+  const client = typeof getSupabaseClient === "function" ? getSupabaseClient() : null;
+  if (!client) return;
+
+  try {
+    const [{ data: courseRows }, { data: couponRows }] = await Promise.all([
+      client.from("admin_courses").select("*"),
+      client.from("admin_coupons").select("*").eq("active", true)
+    ]);
+    applyCourseOverrides(courseRows || []);
+    applyCouponOverrides(couponRows || []);
+  } catch (error) {
+    console.warn("Admin course config unavailable", error);
+  }
+}
 
 const setMetaContent = (selector, content) => {
   const meta = document.querySelector(selector);
@@ -229,6 +310,7 @@ const renderCourseCard = ([key, item]) => `
   </article>
 `;
 
+function renderCoursePage() {
 if (!courseKey) {
   document.title = "All Courses & Pricing | Synapse";
   updateCourseSeo();
@@ -301,8 +383,7 @@ if (!courseKey) {
           <button class="btn btn-secondary" id="applyCoupon">Apply</button>
         </div>
         <p class="coupon-status" id="couponStatus"></p>
-        <p class="refund-policy-note">Strict no-refund policy. Confirm your enrollment before payment.</p>
-        <button class="btn btn-primary pay-btn" id="payBtn">Pay ₹999</button>
+        <button class="btn btn-primary pay-btn" id="payBtn">Pay ${course.price}</button>
       </div>
       <div class="countdown-banner"><span class="countdown-label">Batch starts in</span><div class="countdown-timer" id="courseCountdown"></div></div><div class="seats-counter"><span class="pulse-dot"></span> Only <span id="seatsLeft">14</span> seats left</div>` : ""}
     </div>
@@ -369,6 +450,11 @@ if (!courseKey) {
 `;
 }
 
+  initCountdown();
+  initCyberInterestForm();
+  initPayment();
+}
+
 const menuButton = document.querySelector(".menu-toggle");
 const nav = document.querySelector(".nav");
 
@@ -387,7 +473,7 @@ nav?.addEventListener("click", (event) => {
 });
 
 // Countdown timer for AI & ML batch
-(function initCountdown() {
+function initCountdown() {
   const el = document.getElementById("courseCountdown");
   if (!el) return;
   const target = new Date("2026-06-20T00:00:00+05:30").getTime();
@@ -402,10 +488,10 @@ nav?.addEventListener("click", (event) => {
   }
   update();
   setInterval(update, 1000);
-})();
+}
 
 // Cybersecurity interest form
-(function initCyberInterestForm() {
+function initCyberInterestForm() {
   const form = document.getElementById("cyberInterest");
   if (!form) return;
 
@@ -452,10 +538,10 @@ nav?.addEventListener("click", (event) => {
       status.classList.add("is-error");
     }
   });
-})();
+}
 
 // Coupon & Razorpay Payment
-(function initPayment() {
+function initPayment() {
   const couponInput = document.getElementById("couponInput");
   const couponBtn = document.getElementById("applyCoupon");
   const couponStatus = document.getElementById("couponStatus");
@@ -470,26 +556,21 @@ nav?.addEventListener("click", (event) => {
     couponInput.focus();
   });
 
-  let price = 999;
-  const coupons = {
-    "STAY10": { discount: 10, type: "percent" },
-    "SYNAPSE100": { discount: 100, type: "flat" },
-    "EARLY50": { discount: 50, type: "flat" },
-    "REFER100": { discount: 100, type: "flat" },
-    "MANSOOR": { discount: 100, type: "percent" }
-  };
+  const paymentCourse = courseCatalog["ai-ml"] || {};
+  const basePrice = Number(String(paymentCourse.price || "999").replace(/\D/g, "")) || 999;
+  let price = basePrice;
 
   couponBtn?.addEventListener("click", () => {
     const code = couponInput.value.trim().toUpperCase();
-    const coupon = coupons[code];
+    const coupon = checkoutCoupons[code];
     if (coupon) {
       if (coupon.type === "percent") {
-        price = Math.round(999 - (999 * coupon.discount / 100));
+        price = Math.round(basePrice - (basePrice * coupon.discount / 100));
       } else {
-        price = 999 - coupon.discount;
+        price = basePrice - coupon.discount;
       }
       if (price <= 0) price = 0;
-      couponStatus.textContent = `✓ Coupon applied! You save ₹${999 - price}`;
+      couponStatus.textContent = `✓ Coupon applied! You save ₹${basePrice - price}`;
       couponStatus.style.color = "#155f3c";
       payBtn.textContent = price === 0 ? "Enroll Free" : `Pay ₹${price}`;
     } else {
@@ -555,6 +636,8 @@ nav?.addEventListener("click", (event) => {
     const rzp = new Razorpay(options);
     rzp.open();
   });
-})();
+}
+
+loadAdminCourseConfig().finally(renderCoursePage);
 
 // Auth handled by Clerk via supabase.js initClerkAuth()

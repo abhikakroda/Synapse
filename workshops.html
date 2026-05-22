@@ -43,7 +43,7 @@
 
       <section class="section-pad workshops-list-section">
         <h2 class="workshops-list-title">Upcoming Workshops</h2>
-        <div class="workshops-grid">
+        <div class="workshops-grid" id="upcomingWorkshops">
 
           <article class="workshop-card">
             <div class="workshop-date">
@@ -96,7 +96,7 @@
         </div>
 
         <h2 class="workshops-list-title" style="margin-top: 64px;">Past Workshops</h2>
-        <div class="workshops-grid">
+        <div class="workshops-grid" id="pastWorkshops">
           <article class="workshop-card workshop-past">
             <div class="workshop-date">
               <span>SUN</span>
@@ -154,6 +154,7 @@
       type="text/javascript"
     ></script>
     <script src="supabase.js?v=3"></script>
+    <script src="workshops.js"></script>
     <script>
       const menuButton = document.querySelector(".menu-toggle");
       const nav = document.querySelector(".nav");

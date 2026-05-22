@@ -4078,17 +4078,6 @@ body {
 .coupon-status:empty {
   display: none;
 }
-.refund-policy-note {
-  margin: 12px 0 0;
-  padding: 10px 12px;
-  color: #7a1d1d;
-  background: rgba(255, 235, 235, 0.88);
-  border: 1px solid rgba(211, 47, 47, 0.18);
-  border-radius: 10px;
-  font-size: 12px;
-  font-weight: 800;
-  line-height: 1.45;
-}
 .pay-btn {
   width: 100%;
   margin-top: 14px;
@@ -5291,7 +5280,18 @@ body {
 
 .hero-ornament {
   margin-bottom: 18px !important;
-  opacity: 0.55 !important;
+  opacity: 1 !important;
+  color: rgba(52, 58, 164, 0.26) !important;
+}
+
+.hero-ornament span {
+  height: 2px !important;
+  background: linear-gradient(90deg, transparent, rgba(52, 58, 164, 0.24), transparent) !important;
+}
+
+.hero-ornament strong {
+  color: rgba(52, 58, 164, 0.3) !important;
+  text-shadow: 0 6px 18px rgba(52, 58, 164, 0.12) !important;
 }
 
 .hero-kicker {
