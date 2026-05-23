@@ -9,7 +9,8 @@ const state = {
     users: [],
     workshops: [],
     courses: [],
-    coupons: []
+    coupons: [],
+    bin: []
   }
 };
 
@@ -157,6 +158,13 @@ const views = {
     table: "admin_coupons",
     localKey: "synapse_admin_coupons",
     columns: ["code", "course_slug", "type", "discount", "usage_limit", "used_count", "active", "expires_at", "actions"]
+  },
+  bin: {
+    title: "Bin",
+    subtitle: "Recently deleted workshops, courses, and coupons. Restore them here.",
+    table: null,
+    localKey: null,
+    columns: ["type", "id", "title", "deleted_at", "actions"]
   }
 };
 
@@ -289,6 +297,16 @@ document.getElementById("deleteCouponBtn").addEventListener("click", () => {
   deleteCoupon(code);
 });
 
+document.getElementById("deleteCourseBtn").addEventListener("click", () => {
+  const slug = document.querySelector('#courseForm [name="slug"]').value.trim();
+  deleteCourse(slug);
+});
+
+document.getElementById("deleteWorkshopBtn").addEventListener("click", () => {
+  const id = document.querySelector('#workshopForm [name="id"]').value.trim();
+  deleteWorkshop(id);
+});
+
 document.getElementById("newWorkshopBtn").addEventListener("click", () => {
   openManagerPanel("workshop", false);
   const form = document.getElementById("workshopForm");
@@ -321,18 +339,17 @@ function getClient() {
 
 async function loadDashboard() {
   const client = getClient();
-  if (!client) {
-    loadStatus.textContent = "Supabase not available";
-    return;
-  }
-
-  loadStatus.textContent = "Loading...";
+  loadStatus.textContent = client ? "Loading..." : "Offline (using local drafts)";
 
   const entries = await Promise.all(
     Object.entries(views).map(async ([key, view]) => {
-      const { data, error } = await client.from(view.table).select("*");
+      if (!view.table) return [key, state.records[key] || []];
       const fallbackRows = getFallbackRows(key);
       const localRows = readLocalRows(view.localKey);
+      if (!client) {
+        return [key, sortRecords(mergeRows(fallbackRows, localRows, key))];
+      }
+      const { data, error } = await client.from(view.table).select("*");
       if (!error) {
         const syncedRows = await syncLocalRows(key, view, localRows);
         const remoteRows = syncedRows.length ? mergeRows(data || [], syncedRows, key) : data || [];
@@ -346,9 +363,11 @@ async function loadDashboard() {
     state.records[key] = rows;
   });
 
+  state.records.bin = computeBinRows();
+
   updateMetrics();
   renderCurrentView();
-  loadStatus.textContent = "Updated";
+  loadStatus.textContent = client ? "Updated" : "Offline (using local drafts)";
 }
 
 function readLocalRows(key) {
@@ -398,13 +417,13 @@ function getFallbackRows(key) {
 function mergeRows(baseRows, overrideRows, key) {
   const idKey = key === "courses" ? "slug" : key === "coupons" ? "code" : "id";
   const map = new Map();
-  baseRows.forEach((row) => map.set(row[idKey], row));
+  baseRows.forEach((row) => {
+    if (row && row[idKey] != null) map.set(row[idKey], row);
+  });
   overrideRows.forEach((row) => {
-    if (row.deleted) {
-      map.delete(row[idKey]);
-      return;
-    }
-    map.set(row[idKey], row);
+    if (!row || row[idKey] == null) return;
+    const previous = map.get(row[idKey]);
+    map.set(row[idKey], previous ? { ...previous, ...row } : row);
   });
   return Array.from(map.values());
 }
@@ -456,46 +475,93 @@ function fillCouponForm(coupon) {
   status.className = "form-status is-success";
 }
 
-async function deleteCoupon(code) {
-  const status = document.getElementById("couponStatus");
-  if (!code) {
-    status.textContent = "Enter coupon code to delete.";
-    status.className = "form-status is-error";
+async function softDeleteRecord(viewKey, idKey, idValue, statusEl, label) {
+  const cleanedId = String(idValue || "").trim();
+  if (!cleanedId) {
+    if (statusEl) {
+      statusEl.textContent = `Enter ${label.toLowerCase()} to delete.`;
+      statusEl.className = "form-status is-error";
+    }
     return;
   }
 
-  status.textContent = "Deleting...";
-  status.className = "form-status";
+  if (statusEl) {
+    statusEl.textContent = "Deleting...";
+    statusEl.className = "form-status";
+  }
+
+  const view = views[viewKey];
+  const finalId = idKey === "code" ? cleanedId.toUpperCase() : cleanedId;
+  const row = {
+    [idKey]: finalId,
+    deleted: true,
+    updated_at: new Date().toISOString()
+  };
+  if (viewKey === "coupons") row.active = false;
 
   const client = getClient();
   let error = null;
   if (client) {
-    const result = await client.from(views.coupons.table).upsert({
-      code,
-      active: false,
-      deleted: true,
-      updated_at: new Date().toISOString()
-    }, { onConflict: "code" });
+    const result = await client.from(view.table).upsert(row, { onConflict: idKey });
     error = result.error;
   }
 
-  writeLocalRow(views.coupons.localKey, {
-    code,
-    active: false,
-    deleted: true,
-    updated_at: new Date().toISOString()
-  }, "code");
-  state.records.coupons = state.records.coupons.filter((item) => item.code !== code);
+  writeLocalRow(view.localKey, row, idKey);
 
-  if (error || !client) {
-    status.textContent = "Coupon deleted from local drafts. Supabase table may not exist yet.";
-  } else {
-    status.textContent = "Coupon deleted.";
+  if (statusEl) {
+    statusEl.textContent = error || !client
+      ? `${label} moved to bin (local). Will sync when Supabase is reachable.`
+      : `${label} moved to bin. Restore it from the Bin tab.`;
+    statusEl.classList.add("is-success");
   }
 
-  status.classList.add("is-success");
+  await loadDashboard();
+}
+
+async function deleteCoupon(code) {
+  const status = document.getElementById("couponStatus");
+  await softDeleteRecord("coupons", "code", code, status, "Coupon");
   document.getElementById("couponForm").reset();
-  renderCurrentView();
+}
+
+async function deleteCourse(slug) {
+  const status = document.getElementById("courseStatus");
+  await softDeleteRecord("courses", "slug", slug, status, "Course");
+  document.getElementById("courseForm").reset();
+}
+
+async function deleteWorkshop(id) {
+  const status = document.getElementById("workshopStatus");
+  await softDeleteRecord("workshops", "id", id, status, "Workshop");
+  document.getElementById("workshopForm").reset();
+}
+
+async function restoreItem(type, idValue) {
+  const map = {
+    workshop: { viewKey: "workshops", idKey: "id" },
+    course: { viewKey: "courses", idKey: "slug" },
+    coupon: { viewKey: "coupons", idKey: "code" }
+  };
+  const cfg = map[type];
+  if (!cfg || !idValue) return;
+
+  const view = views[cfg.viewKey];
+  const existing = (state.records[cfg.viewKey] || []).find((row) => row[cfg.idKey] === idValue);
+  const base = existing ? { ...existing } : { [cfg.idKey]: idValue };
+  base.deleted = false;
+  base.updated_at = new Date().toISOString();
+  if (cfg.viewKey === "coupons") base.active = true;
+
+  loadStatus.textContent = "Restoring...";
+
+  const client = getClient();
+  if (client) {
+    await client.from(view.table).upsert(base, { onConflict: cfg.idKey });
+  }
+  writeLocalRow(view.localKey, base, cfg.idKey);
+
+  await loadDashboard();
+  loadStatus.textContent = `${type.charAt(0).toUpperCase()}${type.slice(1)} restored.`;
 }
 
 async function saveManagerRecord(viewKey, record, statusId, successMessage) {
@@ -630,10 +696,37 @@ function updateMetrics() {
 
 function getFilteredRecords() {
   const query = searchInput.value.trim().toLowerCase();
-  const rows = state.records[state.activeView] || [];
-  if (!query) return rows;
+  const baseRows = state.activeView === "bin"
+    ? computeBinRows()
+    : (state.records[state.activeView] || []).filter((row) => !row?.deleted);
+  if (!query) return baseRows;
 
-  return rows.filter((row) => Object.values(row).some((value) => String(value ?? "").toLowerCase().includes(query)));
+  return baseRows.filter((row) => Object.values(row).some((value) => String(value ?? "").toLowerCase().includes(query)));
+}
+
+function computeBinRows() {
+  const result = [];
+  const groups = [
+    { type: "workshop", viewKey: "workshops", idKey: "id" },
+    { type: "course", viewKey: "courses", idKey: "slug" },
+    { type: "coupon", viewKey: "coupons", idKey: "code" }
+  ];
+  groups.forEach(({ type, viewKey, idKey }) => {
+    (state.records[viewKey] || []).forEach((row) => {
+      if (!row?.deleted) return;
+      result.push({
+        type,
+        id: row[idKey],
+        title: row.title || row.code || row[idKey] || "",
+        deleted_at: row.updated_at || ""
+      });
+    });
+  });
+  return result.sort((a, b) => {
+    const ta = new Date(a.deleted_at || 0).getTime();
+    const tb = new Date(b.deleted_at || 0).getTime();
+    return tb - ta;
+  });
 }
 
 function renderCurrentView() {
@@ -656,6 +749,7 @@ function renderCell(row, column, viewKey) {
     return `
       <div class="row-actions">
         <button class="ghost-btn" type="button" data-edit-workshop="${escapeAttr(row.id)}">Edit</button>
+        <button class="danger-btn" type="button" data-delete-workshop="${escapeAttr(row.id)}">Delete</button>
       </div>
     `;
   }
@@ -664,6 +758,7 @@ function renderCell(row, column, viewKey) {
     return `
       <div class="row-actions">
         <button class="ghost-btn" type="button" data-edit-course="${escapeAttr(row.slug)}">Edit</button>
+        <button class="danger-btn" type="button" data-delete-course="${escapeAttr(row.slug)}">Delete</button>
       </div>
     `;
   }
@@ -673,6 +768,14 @@ function renderCell(row, column, viewKey) {
       <div class="row-actions">
         <button class="ghost-btn" type="button" data-edit-coupon="${escapeAttr(row.code)}">Edit</button>
         <button class="danger-btn" type="button" data-delete-coupon="${escapeAttr(row.code)}">Delete</button>
+      </div>
+    `;
+  }
+
+  if (column === "actions" && viewKey === "bin") {
+    return `
+      <div class="row-actions">
+        <button class="ghost-btn" type="button" data-restore-type="${escapeAttr(row.type)}" data-restore-id="${escapeAttr(row.id)}">Restore</button>
       </div>
     `;
   }
@@ -714,11 +817,29 @@ tableBody.addEventListener("click", (event) => {
     return;
   }
 
+  const deleteWorkshopButton = event.target.closest("[data-delete-workshop]");
+  if (deleteWorkshopButton) {
+    const id = deleteWorkshopButton.dataset.deleteWorkshop;
+    if (id && confirm(`Move workshop "${id}" to bin? You can restore it from the Bin tab.`)) {
+      deleteWorkshop(id);
+    }
+    return;
+  }
+
   const editCourseButton = event.target.closest("[data-edit-course]");
   if (editCourseButton) {
     openManagerPanel("course");
     const course = state.records.courses.find((item) => item.slug === editCourseButton.dataset.editCourse);
     if (course) fillCourseForm(course);
+    return;
+  }
+
+  const deleteCourseButton = event.target.closest("[data-delete-course]");
+  if (deleteCourseButton) {
+    const slug = deleteCourseButton.dataset.deleteCourse;
+    if (slug && confirm(`Move course "${slug}" to bin? You can restore it from the Bin tab.`)) {
+      deleteCourse(slug);
+    }
     return;
   }
 
@@ -732,7 +853,16 @@ tableBody.addEventListener("click", (event) => {
 
   const deleteButton = event.target.closest("[data-delete-coupon]");
   if (deleteButton) {
-    deleteCoupon(deleteButton.dataset.deleteCoupon);
+    const code = deleteButton.dataset.deleteCoupon;
+    if (code && confirm(`Move coupon "${code}" to bin? You can restore it from the Bin tab.`)) {
+      deleteCoupon(code);
+    }
+    return;
+  }
+
+  const restoreButton = event.target.closest("[data-restore-id]");
+  if (restoreButton) {
+    restoreItem(restoreButton.dataset.restoreType, restoreButton.dataset.restoreId);
   }
 });
 

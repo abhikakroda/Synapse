@@ -123,7 +123,10 @@
               <label class="wide">Details<textarea name="details" placeholder="One point per line"></textarea></label>
               <label class="wide">Resource links<textarea name="resources" placeholder="Slides|https://...\nNotebook|https://..."></textarea></label>
             </div>
-            <button class="dark-btn" type="submit">Save workshop</button>
+            <div class="form-actions">
+              <button class="dark-btn" type="submit">Save workshop</button>
+              <button class="danger-btn" id="deleteWorkshopBtn" type="button">Delete workshop</button>
+            </div>
             <p class="form-status" id="workshopStatus"></p>
           </form>
 
@@ -155,7 +158,10 @@
               <label class="wide">Syllabus<textarea name="syllabus" placeholder="One syllabus point per line"></textarea></label>
               <label class="wide">Projects<textarea name="projects" placeholder="One project per line"></textarea></label>
             </div>
-            <button class="dark-btn" type="submit">Save course</button>
+            <div class="form-actions">
+              <button class="dark-btn" type="submit">Save course</button>
+              <button class="danger-btn" id="deleteCourseBtn" type="button">Delete course</button>
+            </div>
             <p class="form-status" id="courseStatus"></p>
           </form>
 
@@ -184,8 +190,10 @@
               </label>
               <label>Expire date and time<input name="expires_at" type="datetime-local" /></label>
             </div>
-            <button class="dark-btn" type="submit">Save coupon</button>
-            <button class="danger-btn" id="deleteCouponBtn" type="button">Delete coupon</button>
+            <div class="form-actions">
+              <button class="dark-btn" type="submit">Save coupon</button>
+              <button class="danger-btn" id="deleteCouponBtn" type="button">Delete coupon</button>
+            </div>
             <p class="form-status" id="couponStatus"></p>
           </form>
         </section>
@@ -198,6 +206,7 @@
             <button class="tab" data-view="workshops" type="button">Workshops</button>
             <button class="tab" data-view="courses" type="button">Courses</button>
             <button class="tab" data-view="coupons" type="button">Coupons</button>
+            <button class="tab" data-view="bin" type="button">Bin</button>
           </div>
           <div class="table-tools">
             <input type="search" id="searchInput" placeholder="Search current view" />

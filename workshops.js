@@ -52,8 +52,28 @@ function escapeHtml(value) {
     .replaceAll("'", "&#039;");
 }
 
+const NA_VALUES = new Set(["na", "n/a", "none", "null", "-", "--"]);
+const isNaValue = (value) => NA_VALUES.has(String(value || "").trim().toLowerCase());
+
+function sanitizeWorkshopRow(row) {
+  if (!row) return row;
+  const out = { ...row };
+  ["host", "time", "description", "day", "date", "month", "youtube_url", "google_meet_url", "title"].forEach((key) => {
+    if (isNaValue(out[key])) out[key] = "";
+  });
+  if (Array.isArray(out.details)) {
+    out.details = out.details.filter((item) => !isNaValue(item));
+  }
+  if (Array.isArray(out.resources)) {
+    out.resources = out.resources.filter((item) => item && !isNaValue(item.url) && !isNaValue(item.label));
+  }
+  return out;
+}
+
 function linkOrHash(value) {
-  return value || "#";
+  const text = String(value || "").trim();
+  if (!text || isNaValue(text)) return "";
+  return text;
 }
 
 function asList(value) {
@@ -126,6 +146,8 @@ function renderDetails(workshop) {
 function renderWorkshop(workshop) {
   const isPast = workshop.status === "past";
   const youtubeText = isPast ? "Watch Recording" : "Join YouTube Live";
+  const youtubeUrl = linkOrHash(workshop.youtube_url);
+  const meetUrl = linkOrHash(workshop.google_meet_url);
 
   return `
     <article class="workshop-card ${isPast ? "workshop-past" : ""}">
@@ -136,15 +158,15 @@ function renderWorkshop(workshop) {
       </div>
       <div class="workshop-info">
         <h3>${escapeHtml(workshop.title)}</h3>
-        <p>${escapeHtml(workshop.description || "")}</p>
+        ${workshop.description ? `<p>${escapeHtml(workshop.description)}</p>` : ""}
         <div class="workshop-meta">
-          <span class="workshop-host">By ${escapeHtml(workshop.host || "Synapse Team")}</span>
-          <span class="workshop-platform workshop-yt">▶ ${isPast ? "YouTube" : "YouTube Live"}</span>
+          ${workshop.host ? `<span class="workshop-host">By ${escapeHtml(workshop.host)}</span>` : ""}
+          ${youtubeUrl ? `<span class="workshop-platform workshop-yt">▶ ${isPast ? "YouTube" : "YouTube Live"}</span>` : ""}
           ${workshop.time ? `<span class="workshop-time">${escapeHtml(workshop.time)}</span>` : ""}
         </div>
         <div class="workshop-actions">
-          <a class="btn ${isPast ? "btn-secondary" : "btn-primary"}" href="${escapeHtml(linkOrHash(workshop.youtube_url))}" target="_blank">${youtubeText}</a>
-          ${!isPast ? `<a class="btn btn-secondary" href="${escapeHtml(linkOrHash(workshop.google_meet_url))}" target="_blank">Join Google Meet</a>` : ""}
+          ${youtubeUrl ? `<a class="btn ${isPast ? "btn-secondary" : "btn-primary"}" href="${escapeHtml(youtubeUrl)}" target="_blank">${youtubeText}</a>` : ""}
+          ${!isPast && meetUrl ? `<a class="btn btn-secondary" href="${escapeHtml(meetUrl)}" target="_blank">Join Google Meet</a>` : ""}
         </div>
         ${renderDetails(workshop)}
       </div>
@@ -168,8 +190,8 @@ async function loadAdminWorkshops() {
     console.warn("Admin workshops unavailable", error);
   }
 
-  const upcoming = sortWorkshops(rows.filter((item) => item.status !== "past"));
-  const past = sortWorkshops(rows.filter((item) => item.status === "past"));
+  const upcoming = sortWorkshops(rows.filter((item) => item.status !== "past")).map(sanitizeWorkshopRow);
+  const past = sortWorkshops(rows.filter((item) => item.status === "past")).map(sanitizeWorkshopRow);
 
   upcomingWorkshops.innerHTML = upcoming.length
     ? upcoming.map(renderWorkshop).join("")

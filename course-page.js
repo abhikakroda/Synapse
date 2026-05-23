@@ -104,6 +104,17 @@ const parseListValue = (value) => {
   return String(value).split("\n").map((item) => item.trim()).filter(Boolean);
 };
 
+const NA_VALUES = new Set(["na", "n/a", "none", "null", "-", "--"]);
+const isNaValue = (value) => NA_VALUES.has(String(value || "").trim().toLowerCase());
+
+// "" or undefined => use fallback. "na"/"n/a"/"none" => explicitly suppress (return ""). Anything else => use the admin value.
+const overrideField = (rowVal, fallback) => {
+  const text = String(rowVal ?? "").trim();
+  if (text === "") return fallback ?? "";
+  if (isNaValue(text)) return "";
+  return text;
+};
+
 const readLocalRows = (key) => {
   try {
     return JSON.parse(localStorage.getItem(key) || "[]");
@@ -130,30 +141,42 @@ const applyCourseOverrides = (rows) => {
   rows.forEach((row) => {
     const slug = row.slug;
     if (!slug) return;
+    if (row.deleted) {
+      delete courseCatalog[slug];
+      return;
+    }
+
+    const existing = courseCatalog[slug] || {};
+    const listOrFallback = (rowList, fallback) => {
+      const parsed = parseListValue(rowList);
+      // If admin entered a single "na" entry, suppress the list entirely
+      if (parsed.length === 1 && isNaValue(parsed[0])) return [];
+      return parsed.length ? parsed : (fallback || []);
+    };
 
     courseCatalog[slug] = {
-      ...(courseCatalog[slug] || {}),
-      title: row.title || courseCatalog[slug]?.title || slug,
-      eyebrow: courseCatalog[slug]?.eyebrow || "Complete course",
-      poster: row.poster || courseCatalog[slug]?.poster || "assets/synopse-concept.png",
-      mentor: row.mentor || courseCatalog[slug]?.mentor || "Synapse Team",
-      role: row.role || courseCatalog[slug]?.role || "Mentor",
-      summary: row.summary || courseCatalog[slug]?.summary || "",
-      status: row.status || courseCatalog[slug]?.status || "Coming Soon",
-      cta: row.cta || courseCatalog[slug]?.cta || "Apply Now",
-      price: row.price || courseCatalog[slug]?.price || "Coming Soon",
-      oldPrice: row.old_price || courseCatalog[slug]?.oldPrice || "",
-      discount: row.discount || courseCatalog[slug]?.discount || "",
-      bundle: row.bundle || courseCatalog[slug]?.bundle || "",
-      duration: row.duration || courseCatalog[slug]?.duration || "",
-      mode: courseCatalog[slug]?.mode || "Online",
-      batchSize: courseCatalog[slug]?.batchSize || "",
-      certificate: courseCatalog[slug]?.certificate || "",
-      highlights: parseListValue(row.highlights).length ? parseListValue(row.highlights) : courseCatalog[slug]?.highlights || [],
-      syllabus: parseListValue(row.syllabus).length ? parseListValue(row.syllabus) : courseCatalog[slug]?.syllabus || [],
-      projects: parseListValue(row.projects).length ? parseListValue(row.projects) : courseCatalog[slug]?.projects || [],
-      whoIsItFor: courseCatalog[slug]?.whoIsItFor,
-      outcomes: courseCatalog[slug]?.outcomes
+      ...existing,
+      title: overrideField(row.title, existing.title || slug),
+      eyebrow: existing.eyebrow || "Complete course",
+      poster: overrideField(row.poster, existing.poster || "assets/synopse-concept.png"),
+      mentor: overrideField(row.mentor, existing.mentor || "Synapse Team"),
+      role: overrideField(row.role, existing.role || "Mentor"),
+      summary: overrideField(row.summary, existing.summary || ""),
+      status: overrideField(row.status, existing.status || "Coming Soon"),
+      cta: overrideField(row.cta, existing.cta || "Apply Now"),
+      price: overrideField(row.price, existing.price || "Coming Soon"),
+      oldPrice: overrideField(row.old_price, existing.oldPrice || ""),
+      discount: overrideField(row.discount, existing.discount || ""),
+      bundle: overrideField(row.bundle, existing.bundle || ""),
+      duration: overrideField(row.duration, existing.duration || ""),
+      mode: existing.mode || "Online",
+      batchSize: existing.batchSize || "",
+      certificate: existing.certificate || "",
+      highlights: listOrFallback(row.highlights, existing.highlights),
+      syllabus: listOrFallback(row.syllabus, existing.syllabus),
+      projects: listOrFallback(row.projects, existing.projects),
+      whoIsItFor: existing.whoIsItFor,
+      outcomes: existing.outcomes
     };
   });
 };
