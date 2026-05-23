@@ -269,6 +269,7 @@ document.querySelectorAll("[data-open-manager]").forEach((button) => {
       document.getElementById("workshopStatus").textContent = "Blank workshop ready. Add details and save.";
     }
     if (type === "course") {
+      if (typeof resetPosterUploader === "function") resetPosterUploader();
       document.getElementById("courseStatus").textContent = "Blank course ready. Add details and save.";
     }
     if (type === "coupon") {
@@ -318,6 +319,7 @@ document.getElementById("newCourseBtn").addEventListener("click", () => {
   openManagerPanel("course", false);
   const form = document.getElementById("courseForm");
   form.reset();
+  resetPosterUploader();
   document.getElementById("courseStatus").textContent = "Blank course ready. Add details and save.";
 });
 
@@ -327,6 +329,109 @@ document.querySelectorAll("[data-course-preset]").forEach((button) => {
     if (course) fillCourseForm(course);
   });
 });
+
+// ---------- Course poster uploader ----------
+const POSTER_BUCKET = "course-posters";
+const POSTER_MAX_BYTES = 2 * 1024 * 1024; // 2 MB
+
+const coursePosterFile = document.getElementById("coursePosterFile");
+const coursePosterStatus = document.getElementById("coursePosterStatus");
+const coursePosterPreview = document.getElementById("coursePosterPreview");
+const coursePosterUrlField = document.querySelector('#courseForm [name="poster"]');
+
+function readFileAsDataURL(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || ""));
+    reader.onerror = () => reject(reader.error || new Error("Could not read file"));
+    reader.readAsDataURL(file);
+  });
+}
+
+async function uploadCoursePoster(file) {
+  if (!file) return null;
+  if (!file.type || !file.type.startsWith("image/")) {
+    throw new Error("Please choose an image file (PNG, JPG, WebP, SVG).");
+  }
+  if (file.size > POSTER_MAX_BYTES) {
+    throw new Error(`File too large. Max ${(POSTER_MAX_BYTES / 1024 / 1024).toFixed(0)} MB.`);
+  }
+
+  const slug = cleanId(coursePosterUrlField?.form?.querySelector('[name="slug"]')?.value || "course") || "course";
+  const ext = (file.name.split(".").pop() || file.type.split("/")[1] || "png").toLowerCase().replace(/[^a-z0-9]/g, "") || "png";
+  const path = `${slug}-${Date.now()}.${ext}`;
+
+  const client = getClient();
+  if (client?.storage) {
+    try {
+      const { error } = await client.storage.from(POSTER_BUCKET).upload(path, file, {
+        cacheControl: "3600",
+        upsert: true,
+        contentType: file.type
+      });
+      if (!error) {
+        const { data } = client.storage.from(POSTER_BUCKET).getPublicUrl(path);
+        if (data?.publicUrl) return { url: data.publicUrl, source: "supabase" };
+      } else {
+        console.warn("Supabase storage upload failed", error);
+      }
+    } catch (err) {
+      console.warn("Supabase storage threw", err);
+    }
+  }
+
+  // Fallback: embed as base64 data URL (works without storage bucket)
+  const dataUrl = await readFileAsDataURL(file);
+  return { url: dataUrl, source: "inline" };
+}
+
+function setPosterPreview(value) {
+  if (!coursePosterPreview) return;
+  if (value) {
+    coursePosterPreview.src = value;
+    coursePosterPreview.hidden = false;
+  } else {
+    coursePosterPreview.removeAttribute("src");
+    coursePosterPreview.hidden = true;
+  }
+}
+
+function resetPosterUploader() {
+  if (coursePosterFile) coursePosterFile.value = "";
+  if (coursePosterStatus) {
+    coursePosterStatus.textContent = "";
+    coursePosterStatus.className = "poster-upload-status";
+  }
+  setPosterPreview("");
+}
+
+if (coursePosterFile && coursePosterStatus && coursePosterUrlField) {
+  coursePosterFile.addEventListener("change", async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    coursePosterStatus.textContent = "Uploading...";
+    coursePosterStatus.className = "poster-upload-status";
+
+    try {
+      const result = await uploadCoursePoster(file);
+      if (!result) return;
+      coursePosterUrlField.value = result.url;
+      setPosterPreview(result.url);
+      coursePosterStatus.textContent = result.source === "supabase"
+        ? "Uploaded to Supabase storage."
+        : "Loaded inline (no Supabase 'course-posters' bucket — image will be embedded in the course row).";
+      coursePosterStatus.classList.add(result.source === "supabase" ? "is-success" : "is-error");
+    } catch (err) {
+      coursePosterStatus.textContent = err?.message || "Upload failed.";
+      coursePosterStatus.classList.add("is-error");
+    }
+  });
+
+  coursePosterUrlField.addEventListener("input", () => {
+    setPosterPreview(coursePosterUrlField.value.trim());
+  });
+}
 
 function csvCell(value) {
   const text = value == null ? "" : String(value);
@@ -452,6 +557,9 @@ function fillCourseForm(course) {
     if (!field) return;
     field.value = Array.isArray(value) ? value.join("\n") : value || "";
   });
+
+  if (typeof resetPosterUploader === "function") resetPosterUploader();
+  if (typeof setPosterPreview === "function") setPosterPreview((course.poster || "").trim());
 
   const status = document.getElementById("courseStatus");
   status.textContent = `${course.title} details loaded. Edit and save when ready.`;

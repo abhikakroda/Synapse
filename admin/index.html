@@ -152,6 +152,13 @@
               <label>Discount<input name="discount" placeholder="80% OFF" /></label>
               <label>Duration<input name="duration" placeholder="45 Days" /></label>
               <label class="wide">Course PNG / poster URL<input name="poster" placeholder="assets/course-posters/ai-ml.png" /></label>
+              <div class="wide poster-uploader">
+                <label>Or upload poster image (PNG / JPG / WebP, max 2 MB)
+                  <input id="coursePosterFile" type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" />
+                </label>
+                <p class="poster-upload-status" id="coursePosterStatus" role="status"></p>
+                <img id="coursePosterPreview" class="poster-preview" alt="Course poster preview" hidden />
+              </div>
               <label class="wide">Summary<textarea name="summary" placeholder="Course summary"></textarea></label>
               <label class="wide">Bundle text<input name="bundle" placeholder="Early bird sale price" /></label>
               <label class="wide">Highlights<textarea name="highlights" placeholder="One highlight per line"></textarea></label>

@@ -1,5 +1,23 @@
 -- Synapse Supabase setup
 -- Run this file in the Supabase SQL editor. It is safe to run more than once.
+--
+-- Optional: create a public storage bucket for course poster uploads.
+-- Run this once in the SQL editor (or use the Storage UI to make a public
+-- bucket called "course-posters"):
+--
+--   insert into storage.buckets (id, name, public)
+--     values ('course-posters', 'course-posters', true)
+--     on conflict (id) do nothing;
+--
+--   create policy "Public can read course posters" on storage.objects
+--     for select using (bucket_id = 'course-posters');
+--   create policy "Anon can upload course posters" on storage.objects
+--     for insert with check (bucket_id = 'course-posters');
+--   create policy "Anon can update course posters" on storage.objects
+--     for update using (bucket_id = 'course-posters') with check (bucket_id = 'course-posters');
+--
+-- If the bucket is missing, the admin will fall back to embedding the image
+-- as a base64 data URL inside the course row.
 
 create extension if not exists pgcrypto;
 

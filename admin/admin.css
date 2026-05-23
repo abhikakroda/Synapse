@@ -393,6 +393,46 @@ textarea:focus {
   align-items: center;
 }
 
+.poster-uploader {
+  display: grid;
+  gap: 8px;
+}
+
+.poster-uploader input[type="file"] {
+  min-height: auto;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px dashed rgba(52, 58, 164, 0.35);
+  border-radius: 12px;
+  cursor: pointer;
+}
+
+.poster-upload-status {
+  min-height: 18px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.poster-upload-status.is-success {
+  color: var(--green);
+}
+
+.poster-upload-status.is-error {
+  color: #b42318;
+}
+
+.poster-preview {
+  display: block;
+  max-width: 220px;
+  max-height: 220px;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.5);
+  object-fit: cover;
+}
+
 .form-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
