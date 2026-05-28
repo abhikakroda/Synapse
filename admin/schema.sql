@@ -1,4 +1,4 @@
--- Openzara Academy Supabase setup
+-- Openzara Supabase setup
 -- Run this file in the Supabase SQL editor. It is safe to run more than once.
 --
 -- Optional: create a public storage bucket for course poster uploads.

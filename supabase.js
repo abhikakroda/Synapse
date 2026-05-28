@@ -124,6 +124,12 @@ async function saveEnrollment(details) {
     name: enrollment.name
   }));
 
+  // Save to cookies for faster load
+  if (typeof OZCookie !== "undefined") {
+    OZCookie.saveUser({ clerkId: enrollment.clerkId, email: enrollment.email, phone: enrollment.phone || enrollment.email, name: enrollment.name });
+    OZCookie.savePurchases(purchases);
+  }
+
   const results = await Promise.allSettled([
     saveUserProfile(enrollment),
     savePurchase(enrollment),
@@ -165,19 +171,27 @@ function initClerkAuth() {
     if (!window.Clerk) return;
     clearInterval(poll);
     await window.Clerk.load();
-    if (window.Clerk.user) authBtn.textContent = "My Batch";
+    if (window.Clerk.user) {
+      authBtn.textContent = "My Batch";
+      if (typeof OZCookie !== "undefined") {
+        const d = getClerkUserDetails();
+        OZCookie.saveUser(d);
+      }
+    }
   }, 1000);
 }
 
 async function signUp(phone, name, college) {
   await saveUserProfile({ phone, name, college });
   localStorage.setItem("openzara_user", JSON.stringify({ phone, name, college }));
+  if (typeof OZCookie !== "undefined") OZCookie.saveUser({ phone, name, college });
 }
 
 async function signOut() {
   if (window.Clerk) await window.Clerk.signOut();
   localStorage.removeItem("openzara_user");
   localStorage.removeItem("openzara_purchases");
+  if (typeof OZCookie !== "undefined") OZCookie.clearAll();
 }
 
 document.addEventListener("DOMContentLoaded", initClerkAuth);

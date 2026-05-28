@@ -5,34 +5,38 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="robots" content="noindex, nofollow" />
     <meta name="theme-color" content="#111827" />
-    <title>Resource Viewer | Openzara Academy</title>
+    <title>Resource Viewer | Openzara</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="styles.css?v=ui2" />
+    <link rel="stylesheet" href="styles.css?v=ui3" />
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   </head>
   <body class="secure-resource-body">
     <header class="secure-viewer-header">
       <a class="brand" href="resources.html" aria-label="Back to resources">
         <span class="brand-mark">S</span>
-        <span>Openzara Academy</span>
+        <span>Openzara</span>
       </a>
       <span>View only</span>
     </header>
 
     <main class="secure-viewer">
       <div class="secure-viewer-title">
-        <div>
-          <p class="section-label">Protected resource</p>
-          <h1 id="viewerTitle">Loading...</h1>
+      <div>
+        <p class="section-label">Protected resource</p>
+        <h1 id="viewerTitle">Loading...</h1>
+      </div>
+        <div class="secure-viewer-actions">
+          <button class="btn btn-secondary" id="viewerShareBtn" type="button">Share</button>
+          <a class="btn btn-secondary" href="resources.html">Back</a>
         </div>
-        <a class="btn btn-secondary" href="resources.html">Back</a>
       </div>
       <div class="secure-pages" id="securePages"></div>
     </main>
 
+    <script src="cookie.js"></script>
     <script src="supabase.js?v=4"></script>
-    <script src="resources.js"></script>
+    <script src="resources.js?v=2"></script>
   </body>
 </html>

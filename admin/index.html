@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="robots" content="noindex, nofollow" />
     <meta name="theme-color" content="#111827" />
-    <title>Openzara Academy Team Admin</title>
+    <title>Openzara Team Admin</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -18,7 +18,7 @@
       <section class="access-panel" id="accessPanel">
         <div>
           <p class="eyebrow">Private portal</p>
-          <h1>Openzara Academy Team</h1>
+          <h1>Openzara Team</h1>
           <p>Admin workspace for leads, purchases, student records, workshops, courses, and coupons.</p>
         </div>
         <form class="access-form" id="accessForm">
@@ -33,9 +33,9 @@
 
       <section class="dashboard" id="dashboard" hidden>
         <div class="team-topbar">
-          <a class="brand" href="../index.html" aria-label="Openzara Academy home">
+          <a class="brand" href="../index.html" aria-label="Openzara home">
             <span class="brand-mark">S</span>
-            <span>Openzara Academy</span>
+            <span>Openzara</span>
           </a>
           <nav class="team-nav" aria-label="Admin navigation">
             <a href="../index.html">Home</a>
@@ -53,8 +53,8 @@
         <header class="admin-header">
           <div>
             <p class="eyebrow">Admin dashboard</p>
-            <h1>Openzara Academy Team</h1>
-            <p>Same Openzara Academy workspace, with controls for course details, workshops, coupons, and student records.</p>
+            <h1>Openzara Team</h1>
+            <p>Same Openzara workspace, with controls for course details, workshops, coupons, and student records.</p>
           </div>
         </header>
 
@@ -185,7 +185,7 @@
             </div>
             <div class="form-grid">
               <label>Code<input name="code" placeholder="OPENZARA100" required /></label>
-              <label>Course slug<input name="course_slug" placeholder="ai-ml" /></label>
+              <label>Applies to<input name="course_slug" placeholder="ai-ml, resources, or all" /></label>
               <label>Type
                 <select name="type">
                   <option value="flat">Flat amount</option>
@@ -279,6 +279,7 @@
       </section>
     </main>
 
+    <script src="../cookie.js"></script>
     <script src="../supabase.js?v=4"></script>
     <script src="admin.js?v=2"></script>
   </body>

@@ -4,14 +4,15 @@ const filterButtons = document.querySelectorAll("[data-filter]");
 const programCards = document.querySelectorAll(".program-card");
 const leadForm = document.querySelector("#leadForm");
 const statusMessage = document.querySelector(".form-status");
+const OFFICIAL_SITE_ORIGIN = "https://openzara.online";
 
 const updateSeoUrls = () => {
   if (window.location.protocol === "file:") {
     return;
   }
 
-  const pageUrl = window.location.href.split("#")[0];
-  const origin = window.location.origin;
+  const pageUrl = new URL(`${window.location.pathname}${window.location.search}`, OFFICIAL_SITE_ORIGIN).href;
+  const origin = OFFICIAL_SITE_ORIGIN;
   const canonical = document.querySelector('link[rel="canonical"]');
   const ogImage = document.querySelector('meta[property="og:image"]');
   const twitterImage = document.querySelector('meta[name="twitter:image"]');
@@ -33,16 +34,16 @@ const updateSeoUrls = () => {
       {
         "@type": "Organization",
         "@id": `${origin}/#organization`,
-        name: "Openzara Academy",
+        name: "Openzara",
         url: pageUrl,
         logo: `${origin}/assets/openzara-concept.png`,
         description:
-          "Openzara Academy provides internship and career acceleration programs for Indian college students."
+          "Openzara provides internship and career acceleration programs for Indian college students."
       },
       {
         "@type": "WebSite",
         "@id": `${origin}/#website`,
-        name: "Openzara Academy",
+        name: "Openzara",
         url: pageUrl,
         publisher: {
           "@id": `${origin}/#organization`
@@ -51,7 +52,7 @@ const updateSeoUrls = () => {
       },
       {
         "@type": "ItemList",
-        name: "Openzara Academy career tracks",
+        name: "Openzara career tracks",
         itemListElement: [
           ["AI & ML Internship", "course.html?course=ai-ml"],
           ["Cybersecurity Course", "course.html?course=cybersecurity"]
@@ -112,7 +113,7 @@ leadForm?.addEventListener("submit", (event) => {
 
   submitToSheet({ name, phone, program, college, message });
 
-  statusMessage.textContent = `Thanks ${name}. Your enquiry for ${program} is ready to send to the Openzara Academy team.`;
+  statusMessage.textContent = `Thanks ${name}. Your enquiry for ${program} is ready to send to the Openzara team.`;
   leadForm.reset();
   fireConfetti();
 });

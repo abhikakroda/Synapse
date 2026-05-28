@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>My Batch | Openzara Academy</title>
+    <title>My Batch | Openzara</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -11,7 +11,7 @@
   </head>
   <body>
     <header class="site-header">
-      <a class="brand" href="index.html" aria-label="Openzara Academy home"><span>Openzara Academy</span></a>
+      <a class="brand" href="index.html" aria-label="Openzara home"><span>Openzara</span></a>
       <button class="menu-toggle" type="button" aria-label="Open navigation" aria-expanded="false">
         <span></span><span></span><span></span>
       </button>
@@ -179,7 +179,7 @@
             <div class="dash-gradient-card grad-purple">
               <strong>💼 Job Board</strong>
               <p>Curated AI/ML internships</p>
-              <a class="btn btn-light" href="https://wa.me/918803250878?text=Hi%20Openzara%20Academy%2C%20share%20job%20board%20links" target="_blank">View Jobs</a>
+              <a class="btn btn-light" href="https://wa.me/918803250878?text=Hi%20Openzara%2C%20share%20job%20board%20links" target="_blank">View Jobs</a>
             </div>
             <div class="dash-gradient-card grad-blue">
               <strong>💬 LinkedIn Templates</strong>
@@ -203,12 +203,12 @@
             <div class="dash-gradient-card grad-orange">
               <strong>🎁 Refer Friends</strong>
               <p>Share & earn ₹100 off</p>
-              <a class="btn btn-light" href="https://wa.me/?text=Join%20Openzara%20Academy%20AI%20%26%20ML%20internship%20at%20₹999%20→%20https://openzara-academy.vercel.app/course.html?course=ai-ml" target="_blank">Share Link</a>
+              <a class="btn btn-light" href="https://wa.me/?text=Join%20Openzara%20AI%20%26%20ML%20internship%20at%20₹999%20→%20https://openzara.online/course.html?course=ai-ml" target="_blank">Share Link</a>
             </div>
             <div class="dash-gradient-card grad-purple">
               <strong>💬 Support</strong>
               <p>Chat with us on WhatsApp</p>
-              <a class="btn btn-light" href="https://wa.me/918803250878?text=Hi%20Openzara%20Academy%2C%20I%20need%20help%20with%20my%20batch" target="_blank">Get Help</a>
+              <a class="btn btn-light" href="https://wa.me/918803250878?text=Hi%20Openzara%2C%20I%20need%20help%20with%20my%20batch" target="_blank">Get Help</a>
             </div>
           </div>
         </div>
@@ -217,7 +217,7 @@
 
     <footer class="site-footer">
       <div>
-        <a class="brand" href="index.html"><span>Openzara Academy</span></a>
+        <a class="brand" href="index.html"><span>Openzara</span></a>
         <p>Internship + career acceleration for ambitious students.</p>
       </div>
       <div class="footer-links">
@@ -239,6 +239,7 @@
       src="https://sweeping-chow-51.clerk.accounts.dev/npm/@clerk/clerk-js@latest/dist/clerk.browser.js"
       type="text/javascript"
     ></script>
+    <script src="cookie.js"></script>
     <script src="supabase.js?v=3"></script>
     <script>
       // Menu toggle
@@ -252,16 +253,25 @@
 
       // Auth check via Clerk (wait for it to load)
       async function initDashboard() {
+        let user = null;
+        let phone = "";
+        let name = "";
+
+        // Instant load from cookies
+        const cookieUser = typeof OZCookie !== "undefined" ? OZCookie.getUser() : null;
+        if (cookieUser) {
+          name = cookieUser.name || "";
+          phone = cookieUser.phone || cookieUser.email || "";
+          document.getElementById("dashGreeting").textContent = `Welcome, ${name || "Student"}`;
+          loadPurchases(phone);
+        }
+
         // Wait for Clerk
         await new Promise(r => {
           if (window.Clerk) return r();
           const i = setInterval(() => { if (window.Clerk) { clearInterval(i); r(); } }, 200);
           setTimeout(() => { clearInterval(i); r(); }, 5000);
         });
-
-        let user = null;
-        let phone = "";
-        let name = "";
 
         if (window.Clerk) {
           await window.Clerk.load();
@@ -272,7 +282,8 @@
           name = user.firstName || user.fullName || "";
           phone = user.primaryPhoneNumber?.phoneNumber || user.primaryEmailAddress?.emailAddress || "";
           localStorage.setItem("openzara_user", JSON.stringify({ phone, name }));
-        } else {
+          if (typeof OZCookie !== "undefined") OZCookie.saveUser({ phone, name, email: user.primaryEmailAddress?.emailAddress || "", clerkId: user.id || "" });
+        } else if (!cookieUser) {
           // Fallback to localStorage
           const local = JSON.parse(localStorage.getItem("openzara_user") || "null");
           if (!local) { window.location.href = "index.html"; return; }
@@ -281,7 +292,7 @@
         }
 
         document.getElementById("dashGreeting").textContent = `Welcome, ${name || "Student"}`;
-        loadPurchases(phone);
+        if (!cookieUser) loadPurchases(phone);
       }
 
       initDashboard();
@@ -290,21 +301,51 @@
         const grid = document.getElementById("dashGrid");
         const details = document.getElementById("dashDetails");
         let hasPurchases = false;
+        let hasAiMl = false;
 
-        // Check localStorage first (instant)
-        const local = JSON.parse(localStorage.getItem("openzara_purchases") || "[]");
-        if (local.length) {
+        // Check cookies first (fastest)
+        const cookiePurchases = typeof OZCookie !== "undefined" ? OZCookie.getPurchases() : null;
+        const local = cookiePurchases || JSON.parse(localStorage.getItem("openzara_purchases") || "[]");
+
+        // Also get resource purchases
+        const resourcePurchases = JSON.parse(localStorage.getItem("openzara_resource_purchases") || "[]");
+
+        if (local.length || resourcePurchases.length) {
           hasPurchases = true;
-          grid.innerHTML = local.map(p => `
-            <article class="dash-course-card">
-              <div class="dash-course-icon">${p.title.slice(0, 2)}</div>
-              <div>
-                <h3>${p.title}</h3>
-                <p>Purchased on ${p.date}</p>
-                <span class="course-status-badge is-live">Active</span>
-              </div>
-            </article>
-          `).join("");
+          let cards = "";
+
+          // Course cards
+          if (local.length) {
+            cards += local.map(p => {
+              const title = p.title || p.course || "";
+              if (title.toLowerCase().includes("ai") || title.toLowerCase().includes("ml")) hasAiMl = true;
+              return `
+              <article class="dash-course-card">
+                <div class="dash-course-icon">${title.slice(0, 2)}</div>
+                <div>
+                  <h3>${title}</h3>
+                  <p>Purchased on ${p.date || ""}</p>
+                  <span class="course-status-badge is-live">Active</span>
+                </div>
+              </article>`;
+            }).join("");
+          }
+
+          // Resource cards
+          if (resourcePurchases.length) {
+            cards += resourcePurchases.map(r => `
+              <article class="dash-course-card">
+                <div class="dash-course-icon">📄</div>
+                <div>
+                  <h3>${r.title || r.slug}</h3>
+                  <p>Resource • ${r.purchasedAt ? new Date(r.purchasedAt).toLocaleDateString("en-IN") : ""}</p>
+                  <a class="course-status-badge is-live" href="resource-viewer.html?resource=${encodeURIComponent(r.slug)}" style="text-decoration:none">View</a>
+                </div>
+              </article>
+            `).join("");
+          }
+
+          grid.innerHTML = cards;
         }
 
         // Then try Supabase
@@ -312,20 +353,45 @@
           const data = await getPurchases(phone);
           if (data && data.length) {
             hasPurchases = true;
-            grid.innerHTML = data.map(p => `
+            let cards = data.map(p => {
+              const course = p.course || "";
+              if (course.toLowerCase().includes("ai") || course.toLowerCase().includes("ml")) hasAiMl = true;
+              return `
               <article class="dash-course-card">
-                <div class="dash-course-icon">${p.course.slice(0, 2)}</div>
+                <div class="dash-course-icon">${course.slice(0, 2)}</div>
                 <div>
-                  <h3>${p.course}</h3>
+                  <h3>${course}</h3>
                   <p>Payment: ${p.payment_id}</p>
                   <span class="course-status-badge is-live">Active</span>
                 </div>
-              </article>
-            `).join("");
+              </article>`;
+            }).join("");
+
+            // Keep resource cards
+            if (resourcePurchases.length) {
+              cards += resourcePurchases.map(r => `
+                <article class="dash-course-card">
+                  <div class="dash-course-icon">📄</div>
+                  <div>
+                    <h3>${r.title || r.slug}</h3>
+                    <p>Resource • ${r.purchasedAt ? new Date(r.purchasedAt).toLocaleDateString("en-IN") : ""}</p>
+                    <a class="course-status-badge is-live" href="resource-viewer.html?resource=${encodeURIComponent(r.slug)}" style="text-decoration:none">View</a>
+                  </div>
+                </article>
+              `).join("");
+            }
+
+            grid.innerHTML = cards;
           }
         } catch (e) {}
 
-        if (hasPurchases) details.style.display = "block";
+        // Only show AI&ML course details if user actually purchased it
+        if (hasAiMl) {
+          details.style.display = "block";
+        } else if (hasPurchases) {
+          // Show a minimal section without AI&ML roadmap
+          details.style.display = "none";
+        }
       }
 
       // Logout
@@ -334,6 +400,7 @@
         await window.Clerk?.signOut();
         localStorage.removeItem("openzara_user");
         localStorage.removeItem("openzara_purchases");
+        if (typeof OZCookie !== "undefined") OZCookie.clearAll();
         window.location.href = "index.html";
       });
 
@@ -344,7 +411,9 @@
         const pay = document.getElementById("paymentInfo");
         if (pi) pi.textContent = u ? (u.fullName || u.primaryEmailAddress?.emailAddress || "Student") : "Student";
         const purchases = JSON.parse(localStorage.getItem("openzara_purchases") || "[]");
-        if (pay) pay.textContent = purchases.length ? `${purchases.length} course(s) purchased` : "No purchases yet";
+        const resources = JSON.parse(localStorage.getItem("openzara_resource_purchases") || "[]");
+        const total = purchases.length + resources.length;
+        if (pay) pay.textContent = total ? `${purchases.length} course(s), ${resources.length} resource(s)` : "No purchases yet";
       }, 2000);
     </script>
   </body>
