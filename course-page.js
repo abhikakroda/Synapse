@@ -81,6 +81,7 @@ let courseCatalog = {
   }
 };
 
+const OFFICIAL_SITE_ORIGIN = "https://openzara.online";
 const params = new URLSearchParams(window.location.search);
 const courseKey = params.get("course");
 const root = document.querySelector("#courseRoot");
@@ -159,7 +160,7 @@ const applyCourseOverrides = (rows) => {
       title: overrideField(row.title, existing.title || slug),
       eyebrow: existing.eyebrow || "Complete course",
       poster: overrideField(row.poster, existing.poster || "assets/openzara-concept.png"),
-      mentor: overrideField(row.mentor, existing.mentor || "Openzara Academy Team"),
+      mentor: overrideField(row.mentor, existing.mentor || "Openzara Team"),
       role: overrideField(row.role, existing.role || "Mentor"),
       summary: overrideField(row.summary, existing.summary || ""),
       status: overrideField(row.status, existing.status || "Coming Soon"),
@@ -209,6 +210,15 @@ async function loadAdminCourseConfig() {
   const localCourses = readLocalRows("openzara_admin_courses");
   const localCoupons = readLocalRows("openzara_admin_coupons");
 
+  // Try cookie cache for instant render
+  if (typeof OZCookie !== "undefined") {
+    const cached = OZCookie.getCourseConfig();
+    if (cached && cached.courses) {
+      applyCourseOverrides(cached.courses);
+      applyCouponOverrides(cached.coupons || []);
+    }
+  }
+
   try {
     if (!client) {
       applyCourseOverrides(localCourses);
@@ -220,8 +230,15 @@ async function loadAdminCourseConfig() {
       client.from("admin_courses").select("*"),
       client.from("admin_coupons").select("*").eq("active", true)
     ]);
-    applyCourseOverrides(mergeAdminRows(localCourses, courseRows || [], "slug"));
-    applyCouponOverrides(mergeAdminRows(localCoupons, couponRows || [], "code"));
+    const mergedCourses = mergeAdminRows(localCourses, courseRows || [], "slug");
+    const mergedCoupons = mergeAdminRows(localCoupons, couponRows || [], "code");
+    applyCourseOverrides(mergedCourses);
+    applyCouponOverrides(mergedCoupons);
+
+    // Cache in cookies for next visit
+    if (typeof OZCookie !== "undefined") {
+      OZCookie.saveCourseConfig({ courses: mergedCourses, coupons: mergedCoupons });
+    }
   } catch (error) {
     console.warn("Admin course config unavailable", error);
     applyCourseOverrides(localCourses);
@@ -281,16 +298,16 @@ const updateCourseSeo = (course, key) => {
     return;
   }
 
-  const origin = window.location.origin;
+  const origin = OFFICIAL_SITE_ORIGIN;
   const pageUrl = new URL(window.location.pathname, origin);
   const imageUrl = new URL(course?.poster || "assets/openzara-concept.png", origin).href;
   const canonical = document.querySelector('link[rel="canonical"]');
   const title = course
-    ? `${course.title} Course Syllabus & Internship Projects | Openzara Academy`
-    : "Openzara Academy Courses, Pricing & Internship Syllabus";
+    ? `${course.title} Course Syllabus & Internship Projects | Openzara`
+    : "Openzara Courses, Pricing & Internship Syllabus";
   const description = course
     ? `${course.summary} See syllabus, projects, mentor details, pricing, certificate support, and batch status.`
-    : "Compare Openzara Academy AI & ML and cybersecurity internship courses with syllabus, mentor details, projects, pricing, and batch status.";
+    : "Compare Openzara AI & ML and cybersecurity internship courses with syllabus, mentor details, projects, pricing, and batch status.";
 
   if (key) {
     pageUrl.searchParams.set("course", key);
@@ -315,7 +332,7 @@ const updateCourseSeo = (course, key) => {
       description,
       provider: {
         "@type": "Organization",
-        name: "Openzara Academy",
+        name: "Openzara",
         url: origin
       },
       image: imageUrl,
@@ -348,7 +365,7 @@ const updateCourseSeo = (course, key) => {
   ensureJsonLd({
     "@context": "https://schema.org",
     "@type": "ItemList",
-    name: "Openzara Academy courses",
+    name: "Openzara courses",
     url: pageUrl.href,
     itemListElement: Object.entries(courseCatalog).map(([courseSlug, item], index) => ({
       "@type": "ListItem",
@@ -383,30 +400,26 @@ const renderCourseCard = ([key, item]) => `
       <img src="${item.poster}" alt="${item.title} course poster" />
     </figure>
     <div class="all-course-body">
-      <p class="section-label">${item.eyebrow}</p>
       <h2>${item.title}</h2>
-      <span class="course-status-badge ${key === "ai-ml" ? "is-live" : ""}">${item.status}</span>
-      <p>${item.summary}</p>
+      <span class="course-status-badge ${item.status.toLowerCase().includes('live') || item.status.toLowerCase().includes('ongoing') ? 'is-live' : ''}">${item.status}</span>
       <div class="course-price-row">
         ${renderPrice(item)}
-      </div>
-      <div class="course-meta-row">
-        <span>Mentor: ${item.mentor}</span>
-        <span>${item.role}</span>
-      </div>
-      <div class="course-card-highlights">
-        ${item.highlights.map((point) => `<span>${point}</span>`).join("")}
       </div>
       <a class="btn btn-primary see-more-btn" href="course.html?course=${key}">See More</a>
     </div>
   </article>
 `;
 
+const getCourseCategory = (item) => {
+  const s = (item.status || "").toLowerCase();
+  return (s.includes("ongoing") || s.includes("live")) ? "ongoing" : "upcoming";
+};
+
 function renderCoursePage() {
 if (!root) return;
 
 if (!courseKey) {
-  document.title = "All Courses & Pricing | Openzara Academy";
+  document.title = "All Courses & Pricing | Openzara";
   updateCourseSeo();
 
   root.innerHTML = `
@@ -414,32 +427,39 @@ if (!courseKey) {
       <p class="section-label">Course</p>
       <h1>All courses. See more for full details.</h1>
       <p>
-        Choose an Openzara Academy course, compare syllabus, pricing, mentor details,
+        Choose an Openzara course, compare pricing,
         and open the full course page before enrolling.
       </p>
-      <div class="course-summary-pricing">
-        ${Object.values(courseCatalog).slice(0, 3).map((item) => `
-          <article class="sale-summary-card">
-            <span>${item.title}</span>
-            <div>
-              ${item.oldPrice ? `<del>${item.oldPrice}</del>` : ""}
-              <strong>${item.price}</strong>
-              ${item.discount ? `<em>${item.discount}</em>` : ""}
-            </div>
-          </article>
-        `).join("")}
+      <div class="course-tabs">
+        <button class="course-tab active" data-tab="upcoming">Upcoming</button>
+        <button class="course-tab" data-tab="ongoing">Ongoing</button>
       </div>
     </section>
 
     <section class="all-courses-list section-pad">
-      ${Object.entries(courseCatalog).map(renderCourseCard).join("")}
+      <div class="course-tab-panel" data-panel="upcoming">
+        ${Object.entries(courseCatalog).filter(([,item]) => getCourseCategory(item) === "upcoming").map(renderCourseCard).join("") || '<p class="empty-state">No upcoming courses right now.</p>'}
+      </div>
+      <div class="course-tab-panel" data-panel="ongoing" style="display:none">
+        ${Object.entries(courseCatalog).filter(([,item]) => getCourseCategory(item) === "ongoing").map(renderCourseCard).join("") || '<p class="empty-state">No ongoing courses right now.</p>'}
+      </div>
     </section>
   `;
+
+  // Tab switching
+  root.querySelectorAll(".course-tab").forEach(btn => {
+    btn.addEventListener("click", () => {
+      root.querySelectorAll(".course-tab").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      root.querySelectorAll(".course-tab-panel").forEach(p => p.style.display = "none");
+      root.querySelector(`[data-panel="${btn.dataset.tab}"]`).style.display = "";
+    });
+  });
 } else {
   const resolvedCourseKey = courseCatalog[courseKey] ? courseKey : "ai-ml";
   const course = courseCatalog[resolvedCourseKey];
 
-  document.title = `${course.title} Syllabus | Openzara Academy`;
+  document.title = `${course.title} Syllabus | Openzara`;
   updateCourseSeo(course, resolvedCourseKey);
 
   root.innerHTML = `
@@ -713,7 +733,7 @@ function initPayment() {
       key: "rzp_test_SrFYeqYJM1Ef3u",
       amount: price * 100,
       currency: "INR",
-      name: "Openzara Academy",
+      name: "Openzara",
       description: "AI & ML 45-Day Internship",
       prefill: {
         name: userDetails.name || "",

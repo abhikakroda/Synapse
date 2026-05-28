@@ -1,4 +1,11 @@
 const RESOURCE_PURCHASE_KEY = "openzara_resource_purchases";
+const OFFICIAL_SITE_ORIGIN = "https://openzara.online";
+const defaultResourceCoupons = {
+  "OPENZARA100": { discount: 100, type: "flat", target: "all" },
+  "STAY10": { discount: 10, type: "percent", target: "all" }
+};
+let resourceCoupons = { ...defaultResourceCoupons };
+const resourceCheckoutState = new Map();
 
 const defaultResources = [
   {
@@ -30,6 +37,21 @@ function escapeHtml(value) {
     .replaceAll("'", "&#039;");
 }
 
+const normalizeCouponCode = (value) => String(value || "").trim().toUpperCase();
+const normalizeSlug = (value) => String(value || "").trim().toLowerCase().replace(/[^a-z0-9-]+/g, "-").replace(/(^-|-$)/g, "");
+
+function officialUrl(path) {
+  return new URL(path, OFFICIAL_SITE_ORIGIN).href;
+}
+
+function getResourceShareUrl(resource) {
+  return officialUrl(`resources.html?resource=${encodeURIComponent(resource.slug)}`);
+}
+
+function formatInr(amount) {
+  return `₹${Number(amount || 0).toLocaleString("en-IN")}`;
+}
+
 function readPurchasedResources() {
   try {
     return JSON.parse(localStorage.getItem(RESOURCE_PURCHASE_KEY) || "[]");
@@ -38,12 +60,14 @@ function readPurchasedResources() {
   }
 }
 
-function savePurchasedResource(resource, paymentId) {
+function savePurchasedResource(resource, paymentId, amount = Number(resource.price || 0), couponCode = "") {
   const rows = readPurchasedResources().filter((item) => item.slug !== resource.slug);
   rows.push({
     slug: resource.slug,
     title: resource.title,
     paymentId,
+    amount,
+    couponCode,
     purchasedAt: new Date().toISOString()
   });
   localStorage.setItem(RESOURCE_PURCHASE_KEY, JSON.stringify(rows));
@@ -76,6 +100,56 @@ async function loadResources() {
   }
 }
 
+async function loadResourceCoupons() {
+  const client = typeof getSupabaseClient === "function" ? getSupabaseClient() : null;
+  if (!client) return { ...defaultResourceCoupons };
+
+  try {
+    const { data, error } = await client.from("admin_coupons").select("*").eq("active", true);
+    if (error) return { ...defaultResourceCoupons };
+
+    const activeCoupons = { ...defaultResourceCoupons };
+    (data || []).forEach((row) => {
+      const code = normalizeCouponCode(row.code);
+      const target = normalizeSlug(row.course_slug || "all");
+      const expiresAt = row.expires_at ? new Date(row.expires_at).getTime() : 0;
+      const usageLimit = Number(row.usage_limit || 0);
+      const usedCount = Number(row.used_count || 0);
+
+      if (!code || row.deleted || row.active === false || (expiresAt && expiresAt < Date.now())) return;
+      if (usageLimit > 0 && usedCount >= usageLimit) return;
+
+      activeCoupons[code] = {
+        discount: Number(row.discount || 0),
+        type: row.type === "percent" ? "percent" : "flat",
+        target: target || "all"
+      };
+    });
+
+    return activeCoupons;
+  } catch {
+    return { ...defaultResourceCoupons };
+  }
+}
+
+function couponAppliesToResource(coupon, resource) {
+  const target = normalizeSlug(coupon?.target || "all");
+  const slug = normalizeSlug(resource.slug);
+  return ["all", "resource", "resources", "pdf", "pdfs"].includes(target) || target === slug;
+}
+
+function getDiscountedResourcePrice(resource, coupon) {
+  const basePrice = Number(resource.price || 0);
+  if (!coupon || !couponAppliesToResource(coupon, resource)) return basePrice;
+
+  const discount = Number(coupon.discount || 0);
+  const discounted = coupon.type === "percent"
+    ? Math.round(basePrice - (basePrice * discount / 100))
+    : basePrice - discount;
+
+  return Math.max(0, discounted);
+}
+
 function resourceArt(resource) {
   if (resource.cover_image) {
     return `<img src="${escapeHtml(resource.cover_image)}" alt="${escapeHtml(resource.title)} cover" loading="lazy" draggable="false" />`;
@@ -87,27 +161,89 @@ function renderResourceCard(resource) {
   const purchased = hasResourceAccess(resource);
   const price = Number(resource.price || 0);
   const disabled = !Array.isArray(resource.page_images) || resource.page_images.length === 0;
+  const slug = escapeHtml(resource.slug);
   const action = purchased
     ? `<a class="btn btn-primary" href="resource-viewer.html?resource=${encodeURIComponent(resource.slug)}">View PDF</a>`
-    : `<button class="btn btn-primary" type="button" data-buy-resource="${escapeHtml(resource.slug)}" ${disabled ? "disabled" : ""}>Buy ₹${price.toLocaleString("en-IN")}</button>`;
+    : `<button class="btn btn-primary" type="button" data-buy-resource="${slug}" ${disabled ? "disabled" : ""}>Buy ${formatInr(price)}</button>`;
 
   return `
-    <article class="resource-shop-card">
+    <article class="resource-shop-card" id="resource-${slug}" data-resource-card="${slug}">
       <figure>${resourceArt(resource)}</figure>
       <div>
         <h2>${escapeHtml(resource.title)}</h2>
-        <p>${escapeHtml(resource.description || "")}</p>
         <div class="resource-shop-meta">
-          <span>${resource.page_count || resource.page_images?.length || 0} pages</span>
-          <strong>${price <= 0 ? "Free" : `₹${price.toLocaleString("en-IN")}`}</strong>
+          <strong data-resource-price="${slug}">${price <= 0 ? "Free" : formatInr(price)}</strong>
+          ${purchased ? "<small>Purchased</small>" : disabled ? "<small>Coming soon</small>" : ""}
         </div>
         <div class="resource-card-actions">
           ${action}
-          ${disabled ? "<small>Upload PDF pages from admin first.</small>" : "<small>View-only image reader</small>"}
         </div>
       </div>
     </article>
   `;
+}
+
+async function shareResource(resource, button) {
+  const url = getResourceShareUrl(resource);
+  const title = `${resource.title} | Openzara Resources`;
+  const text = resource.description || "Openzara learning resource";
+
+  try {
+    if (navigator.share) {
+      await navigator.share({ title, text, url });
+    } else if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(url);
+    } else {
+      const input = document.createElement("input");
+      input.value = url;
+      document.body.appendChild(input);
+      input.select();
+      document.execCommand("copy");
+      input.remove();
+    }
+
+    if (button) {
+      const original = button.textContent;
+      button.textContent = "Copied";
+      setTimeout(() => {
+        button.textContent = original || "Share";
+      }, 1600);
+    }
+  } catch (error) {
+    if (button) button.textContent = "Try again";
+  }
+}
+
+function applyResourceCoupon(resource, card) {
+  const input = card.querySelector(`[data-resource-coupon-input="${CSS.escape(resource.slug)}"]`);
+  const status = card.querySelector(`[data-resource-coupon-status="${CSS.escape(resource.slug)}"]`);
+  const buyButton = card.querySelector(`[data-buy-resource="${CSS.escape(resource.slug)}"]`);
+  const priceLabel = card.querySelector(`[data-resource-price="${CSS.escape(resource.slug)}"]`);
+  const code = normalizeCouponCode(input?.value);
+  const coupon = resourceCoupons[code];
+  const basePrice = Number(resource.price || 0);
+
+  if (!code || !coupon || !couponAppliesToResource(coupon, resource)) {
+    resourceCheckoutState.set(resource.slug, { price: basePrice, couponCode: "" });
+    if (status) {
+      status.textContent = "Invalid coupon code";
+      status.style.color = "#d32f2f";
+    }
+    if (buyButton) buyButton.textContent = `Buy ${formatInr(basePrice)}`;
+    if (priceLabel) priceLabel.textContent = basePrice <= 0 ? "Free" : formatInr(basePrice);
+    return;
+  }
+
+  const finalPrice = getDiscountedResourcePrice(resource, coupon);
+  const savings = basePrice - finalPrice;
+  resourceCheckoutState.set(resource.slug, { price: finalPrice, couponCode: code });
+
+  if (status) {
+    status.textContent = savings > 0 ? `Coupon applied. You save ${formatInr(savings)}.` : "Coupon applied.";
+    status.style.color = "#155f3c";
+  }
+  if (buyButton) buyButton.textContent = finalPrice === 0 ? "Get Free" : `Pay ${formatInr(finalPrice)}`;
+  if (priceLabel) priceLabel.textContent = finalPrice === 0 ? "Free" : formatInr(finalPrice);
 }
 
 async function buyResource(resource) {
@@ -131,9 +267,22 @@ async function buyResource(resource) {
     return;
   }
 
-  const amount = Number(resource.price || 0);
+  const checkoutState = resourceCheckoutState.get(resource.slug) || {};
+  const amount = Number(checkoutState.price ?? resource.price ?? 0);
+  const appliedCouponCode = normalizeCouponCode(checkoutState.couponCode);
+  const userDetails = typeof getClerkUserDetails === "function" ? getClerkUserDetails() : {};
+
   if (amount <= 0) {
-    savePurchasedResource(resource, "FREE-RESOURCE");
+    savePurchasedResource(resource, appliedCouponCode ? "FREE-COUPON" : "FREE-RESOURCE", 0, appliedCouponCode);
+    if (typeof savePurchase === "function") {
+      await savePurchase({
+        ...userDetails,
+        course: `Resource: ${resource.title}`,
+        paymentId: appliedCouponCode ? "FREE-COUPON" : "FREE-RESOURCE",
+        amount: 0
+      });
+    }
+    await recordResourceCouponUsage(appliedCouponCode);
     window.location.href = `resource-viewer.html?resource=${encodeURIComponent(resource.slug)}`;
     return;
   }
@@ -143,12 +292,11 @@ async function buyResource(resource) {
     return;
   }
 
-  const userDetails = typeof getClerkUserDetails === "function" ? getClerkUserDetails() : {};
   const options = {
     key: "rzp_test_SrFYeqYJM1Ef3u",
-    amount: amount * 100,
+    amount: Math.round(amount * 100),
     currency: "INR",
-    name: "Openzara Academy",
+    name: "Openzara",
     description: resource.title,
     prefill: {
       name: userDetails.name || "",
@@ -156,7 +304,7 @@ async function buyResource(resource) {
       contact: userDetails.phone || ""
     },
     handler: async (response) => {
-      savePurchasedResource(resource, response.razorpay_payment_id);
+      savePurchasedResource(resource, response.razorpay_payment_id, amount, appliedCouponCode);
       if (typeof savePurchase === "function") {
         await savePurchase({
           ...userDetails,
@@ -165,6 +313,7 @@ async function buyResource(resource) {
           amount
         });
       }
+      await recordResourceCouponUsage(appliedCouponCode);
       window.location.href = `resource-viewer.html?resource=${encodeURIComponent(resource.slug)}`;
     },
     theme: { color: "#343aa4" }
@@ -172,21 +321,73 @@ async function buyResource(resource) {
   new Razorpay(options).open();
 }
 
+async function recordResourceCouponUsage(code) {
+  const couponCode = normalizeCouponCode(code);
+  if (!couponCode) return;
+
+  try {
+    const client = typeof getSupabaseClient === "function" ? getSupabaseClient() : null;
+    if (!client?.rpc) return;
+    await client.rpc("redeem_admin_coupon", { coupon_code: couponCode });
+  } catch (error) {
+    console.warn("Resource coupon usage could not be recorded", error);
+  }
+}
+
 async function initResourceShop() {
   const grid = document.getElementById("resourceShopGrid");
   if (!grid) return;
 
-  const resources = await loadResources();
+  const [resources, coupons] = await Promise.all([loadResources(), loadResourceCoupons()]);
+  resourceCoupons = coupons;
+  resources.forEach((resource) => {
+    resourceCheckoutState.set(resource.slug, { price: Number(resource.price || 0), couponCode: "" });
+  });
+
   grid.innerHTML = resources.length
     ? resources.map(renderResourceCard).join("")
     : `<p class="empty-state">No resources available.</p>`;
 
   grid.addEventListener("click", (event) => {
+    const couponButton = event.target.closest("[data-apply-resource-coupon]");
+    if (couponButton) {
+      const resource = resources.find((item) => item.slug === couponButton.dataset.applyResourceCoupon);
+      const card = couponButton.closest(".resource-shop-card");
+      if (resource && card) applyResourceCoupon(resource, card);
+      return;
+    }
+
+    const shareButton = event.target.closest("[data-share-resource]");
+    if (shareButton) {
+      const resource = resources.find((item) => item.slug === shareButton.dataset.shareResource);
+      if (resource) shareResource(resource, shareButton);
+      return;
+    }
+
     const button = event.target.closest("[data-buy-resource]");
     if (!button) return;
     const resource = resources.find((item) => item.slug === button.dataset.buyResource);
     if (resource) buyResource(resource);
   });
+
+  grid.addEventListener("keydown", (event) => {
+    if (event.key !== "Enter") return;
+    const input = event.target.closest("[data-resource-coupon-input]");
+    if (!input) return;
+    event.preventDefault();
+    const resource = resources.find((item) => item.slug === input.dataset.resourceCouponInput);
+    const card = input.closest(".resource-shop-card");
+    if (resource && card) applyResourceCoupon(resource, card);
+  });
+
+  const focusedResourceSlug = normalizeSlug(new URLSearchParams(window.location.search).get("resource"));
+  if (focusedResourceSlug) {
+    const focusedCard = grid.querySelector(`[data-resource-card="${CSS.escape(focusedResourceSlug)}"]`);
+    if (focusedCard) {
+      focusedCard.classList.add("is-shared-target");
+      focusedCard.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }
 }
 
 function blockViewerShortcuts() {
@@ -223,9 +424,13 @@ async function initResourceViewer() {
     return;
   }
 
-  document.title = `${resource.title} | Openzara Academy`;
+  document.title = `${resource.title} | Openzara`;
   const title = document.getElementById("viewerTitle");
   if (title) title.textContent = resource.title;
+  const shareButton = document.getElementById("viewerShareBtn");
+  if (shareButton) {
+    shareButton.addEventListener("click", () => shareResource(resource, shareButton));
+  }
 
   const pages = Array.isArray(resource.page_images) ? resource.page_images : [];
   pagesRoot.innerHTML = pages.length
