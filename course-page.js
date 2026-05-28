@@ -410,11 +410,6 @@ const renderCourseCard = ([key, item]) => `
   </article>
 `;
 
-const getCourseCategory = (item) => {
-  const s = (item.status || "").toLowerCase();
-  return (s.includes("ongoing") || s.includes("live")) ? "ongoing" : "upcoming";
-};
-
 function renderCoursePage() {
 if (!root) return;
 
@@ -430,31 +425,12 @@ if (!courseKey) {
         Choose an Openzara course, compare pricing,
         and open the full course page before enrolling.
       </p>
-      <div class="course-tabs">
-        <button class="course-tab active" data-tab="upcoming">Upcoming</button>
-        <button class="course-tab" data-tab="ongoing">Ongoing</button>
-      </div>
     </section>
 
     <section class="all-courses-list section-pad">
-      <div class="course-tab-panel" data-panel="upcoming">
-        ${Object.entries(courseCatalog).filter(([,item]) => getCourseCategory(item) === "upcoming").map(renderCourseCard).join("") || '<p class="empty-state">No upcoming courses right now.</p>'}
-      </div>
-      <div class="course-tab-panel" data-panel="ongoing" style="display:none">
-        ${Object.entries(courseCatalog).filter(([,item]) => getCourseCategory(item) === "ongoing").map(renderCourseCard).join("") || '<p class="empty-state">No ongoing courses right now.</p>'}
-      </div>
+      ${Object.entries(courseCatalog).map(renderCourseCard).join("")}
     </section>
   `;
-
-  // Tab switching
-  root.querySelectorAll(".course-tab").forEach(btn => {
-    btn.addEventListener("click", () => {
-      root.querySelectorAll(".course-tab").forEach(b => b.classList.remove("active"));
-      btn.classList.add("active");
-      root.querySelectorAll(".course-tab-panel").forEach(p => p.style.display = "none");
-      root.querySelector(`[data-panel="${btn.dataset.tab}"]`).style.display = "";
-    });
-  });
 } else {
   const resolvedCourseKey = courseCatalog[courseKey] ? courseKey : "ai-ml";
   const course = courseCatalog[resolvedCourseKey];
