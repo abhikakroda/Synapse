@@ -178,7 +178,7 @@ async function loadAdminWorkshops() {
   if (!upcomingWorkshops || !pastWorkshops) return;
 
   const client = typeof getSupabaseClient === "function" ? getSupabaseClient() : null;
-  const localRows = readLocalRows("synapse_admin_workshops");
+  const localRows = readLocalRows("openzara_admin_workshops");
   let rows = mergeWorkshops(defaultWorkshops, localRows);
 
   try {

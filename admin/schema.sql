@@ -1,4 +1,4 @@
--- Synapse Supabase setup
+-- Openzara Academy Supabase setup
 -- Run this file in the Supabase SQL editor. It is safe to run more than once.
 --
 -- Optional: create a public storage bucket for course poster uploads.
@@ -98,6 +98,7 @@ create table if not exists public.admin_courses (
   highlights jsonb default '[]'::jsonb,
   syllabus jsonb default '[]'::jsonb,
   projects jsonb default '[]'::jsonb,
+  deleted boolean default false,
   updated_at timestamptz default now()
 );
 
@@ -111,6 +112,19 @@ create table if not exists public.admin_coupons (
   active boolean default true,
   deleted boolean default false,
   expires_at timestamptz,
+  updated_at timestamptz default now()
+);
+
+create table if not exists public.admin_resources (
+  slug text primary key,
+  title text not null,
+  description text,
+  price numeric default 0,
+  active boolean default true,
+  deleted boolean default false,
+  cover_image text,
+  page_images jsonb default '[]'::jsonb,
+  page_count integer default 0,
   updated_at timestamptz default now()
 );
 
@@ -193,6 +207,7 @@ alter table public.admin_courses add column if not exists bundle text;
 alter table public.admin_courses add column if not exists highlights jsonb default '[]'::jsonb;
 alter table public.admin_courses add column if not exists syllabus jsonb default '[]'::jsonb;
 alter table public.admin_courses add column if not exists projects jsonb default '[]'::jsonb;
+alter table public.admin_courses add column if not exists deleted boolean default false;
 alter table public.admin_courses add column if not exists updated_at timestamptz default now();
 
 alter table public.admin_coupons add column if not exists course_slug text default 'ai-ml';
@@ -204,6 +219,16 @@ alter table public.admin_coupons add column if not exists active boolean default
 alter table public.admin_coupons add column if not exists deleted boolean default false;
 alter table public.admin_coupons add column if not exists expires_at timestamptz;
 alter table public.admin_coupons add column if not exists updated_at timestamptz default now();
+
+alter table public.admin_resources add column if not exists title text;
+alter table public.admin_resources add column if not exists description text;
+alter table public.admin_resources add column if not exists price numeric default 0;
+alter table public.admin_resources add column if not exists active boolean default true;
+alter table public.admin_resources add column if not exists deleted boolean default false;
+alter table public.admin_resources add column if not exists cover_image text;
+alter table public.admin_resources add column if not exists page_images jsonb default '[]'::jsonb;
+alter table public.admin_resources add column if not exists page_count integer default 0;
+alter table public.admin_resources add column if not exists updated_at timestamptz default now();
 
 drop index if exists purchases_payment_id_key;
 drop index if exists users_phone_key;
@@ -258,6 +283,7 @@ alter table public.certificates enable row level security;
 alter table public.admin_workshops enable row level security;
 alter table public.admin_courses enable row level security;
 alter table public.admin_coupons enable row level security;
+alter table public.admin_resources enable row level security;
 
 grant usage on schema public to anon, authenticated;
 grant select, insert, update, delete on
@@ -267,7 +293,8 @@ grant select, insert, update, delete on
   public.certificates,
   public.admin_workshops,
   public.admin_courses,
-  public.admin_coupons
+  public.admin_coupons,
+  public.admin_resources
 to anon, authenticated;
 
 drop policy if exists "Anyone can create leads" on public.leads;
@@ -283,6 +310,7 @@ drop policy if exists "Anon can manage certificates" on public.certificates;
 drop policy if exists "Public can read admin workshops" on public.admin_workshops;
 drop policy if exists "Public can read admin courses" on public.admin_courses;
 drop policy if exists "Public can read active coupons" on public.admin_coupons;
+drop policy if exists "Public can read active resources" on public.admin_resources;
 drop policy if exists "Anon can manage admin workshops" on public.admin_workshops;
 drop policy if exists "Anon can insert admin workshops" on public.admin_workshops;
 drop policy if exists "Anon can update admin workshops" on public.admin_workshops;
@@ -295,6 +323,9 @@ drop policy if exists "Anon can manage admin coupons" on public.admin_coupons;
 drop policy if exists "Anon can insert admin coupons" on public.admin_coupons;
 drop policy if exists "Anon can update admin coupons" on public.admin_coupons;
 drop policy if exists "Anon can delete admin coupons" on public.admin_coupons;
+drop policy if exists "Anon can insert admin resources" on public.admin_resources;
+drop policy if exists "Anon can update admin resources" on public.admin_resources;
+drop policy if exists "Anon can delete admin resources" on public.admin_resources;
 
 create policy "Anon can manage leads"
   on public.leads for all
@@ -330,6 +361,10 @@ create policy "Public can read admin courses"
 
 create policy "Public can read active coupons"
   on public.admin_coupons for select
+  using (active = true and deleted = false);
+
+create policy "Public can read active resources"
+  on public.admin_resources for select
   using (active = true and deleted = false);
 
 create policy "Anon can insert admin workshops"
@@ -369,4 +404,17 @@ create policy "Anon can update admin coupons"
 
 create policy "Anon can delete admin coupons"
   on public.admin_coupons for delete
+  using (true);
+
+create policy "Anon can insert admin resources"
+  on public.admin_resources for insert
+  with check (true);
+
+create policy "Anon can update admin resources"
+  on public.admin_resources for update
+  using (true)
+  with check (true);
+
+create policy "Anon can delete admin resources"
+  on public.admin_resources for delete
   using (true);

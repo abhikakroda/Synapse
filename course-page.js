@@ -87,7 +87,7 @@ const root = document.querySelector("#courseRoot");
 let adminCourseRefreshTimer = null;
 const defaultCheckoutCoupons = {
   "STAY10": { discount: 10, type: "percent" },
-  "SYNAPSE100": { discount: 100, type: "flat" },
+  "OPENZARA100": { discount: 100, type: "flat" },
   "EARLY50": { discount: 50, type: "flat" },
   "REFER100": { discount: 100, type: "flat" },
   "MANSOOR": { discount: 100, type: "percent" }
@@ -158,8 +158,8 @@ const applyCourseOverrides = (rows) => {
       ...existing,
       title: overrideField(row.title, existing.title || slug),
       eyebrow: existing.eyebrow || "Complete course",
-      poster: overrideField(row.poster, existing.poster || "assets/synopse-concept.png"),
-      mentor: overrideField(row.mentor, existing.mentor || "Synapse Team"),
+      poster: overrideField(row.poster, existing.poster || "assets/openzara-concept.png"),
+      mentor: overrideField(row.mentor, existing.mentor || "Openzara Academy Team"),
       role: overrideField(row.role, existing.role || "Mentor"),
       summary: overrideField(row.summary, existing.summary || ""),
       status: overrideField(row.status, existing.status || "Coming Soon"),
@@ -206,8 +206,8 @@ const applyCouponOverrides = (rows) => {
 
 async function loadAdminCourseConfig() {
   const client = typeof getSupabaseClient === "function" ? getSupabaseClient() : null;
-  const localCourses = readLocalRows("synapse_admin_courses");
-  const localCoupons = readLocalRows("synapse_admin_coupons");
+  const localCourses = readLocalRows("openzara_admin_courses");
+  const localCoupons = readLocalRows("openzara_admin_coupons");
 
   try {
     if (!client) {
@@ -244,7 +244,7 @@ function watchAdminCourseConfig() {
   const client = typeof getSupabaseClient === "function" ? getSupabaseClient() : null;
 
   window.addEventListener("storage", (event) => {
-    if (event.key === "synapse_admin_courses" || event.key === "synapse_admin_coupons") {
+    if (event.key === "openzara_admin_courses" || event.key === "openzara_admin_coupons") {
       refreshAdminCourseConfig();
     }
   });
@@ -252,7 +252,7 @@ function watchAdminCourseConfig() {
   if (!client?.channel) return;
 
   client
-    .channel("synapse-course-config")
+    .channel("openzara-course-config")
     .on("postgres_changes", { event: "*", schema: "public", table: "admin_courses" }, refreshAdminCourseConfig)
     .on("postgres_changes", { event: "*", schema: "public", table: "admin_coupons" }, refreshAdminCourseConfig)
     .subscribe();
@@ -283,14 +283,14 @@ const updateCourseSeo = (course, key) => {
 
   const origin = window.location.origin;
   const pageUrl = new URL(window.location.pathname, origin);
-  const imageUrl = new URL(course?.poster || "assets/synopse-concept.png", origin).href;
+  const imageUrl = new URL(course?.poster || "assets/openzara-concept.png", origin).href;
   const canonical = document.querySelector('link[rel="canonical"]');
   const title = course
-    ? `${course.title} Course Syllabus & Internship Projects | Synapse`
-    : "Synapse Courses, Pricing & Internship Syllabus";
+    ? `${course.title} Course Syllabus & Internship Projects | Openzara Academy`
+    : "Openzara Academy Courses, Pricing & Internship Syllabus";
   const description = course
     ? `${course.summary} See syllabus, projects, mentor details, pricing, certificate support, and batch status.`
-    : "Compare Synapse AI & ML and cybersecurity internship courses with syllabus, mentor details, projects, pricing, and batch status.";
+    : "Compare Openzara Academy AI & ML and cybersecurity internship courses with syllabus, mentor details, projects, pricing, and batch status.";
 
   if (key) {
     pageUrl.searchParams.set("course", key);
@@ -315,7 +315,7 @@ const updateCourseSeo = (course, key) => {
       description,
       provider: {
         "@type": "Organization",
-        name: "Synapse",
+        name: "Openzara Academy",
         url: origin
       },
       image: imageUrl,
@@ -348,7 +348,7 @@ const updateCourseSeo = (course, key) => {
   ensureJsonLd({
     "@context": "https://schema.org",
     "@type": "ItemList",
-    name: "Synapse courses",
+    name: "Openzara Academy courses",
     url: pageUrl.href,
     itemListElement: Object.entries(courseCatalog).map(([courseSlug, item], index) => ({
       "@type": "ListItem",
@@ -406,7 +406,7 @@ function renderCoursePage() {
 if (!root) return;
 
 if (!courseKey) {
-  document.title = "All Courses & Pricing | Synapse";
+  document.title = "All Courses & Pricing | Openzara Academy";
   updateCourseSeo();
 
   root.innerHTML = `
@@ -414,7 +414,7 @@ if (!courseKey) {
       <p class="section-label">Course</p>
       <h1>All courses. See more for full details.</h1>
       <p>
-        Choose a Synapse course, compare syllabus, pricing, mentor details,
+        Choose an Openzara Academy course, compare syllabus, pricing, mentor details,
         and open the full course page before enrolling.
       </p>
       <div class="course-summary-pricing">
@@ -439,7 +439,7 @@ if (!courseKey) {
   const resolvedCourseKey = courseCatalog[courseKey] ? courseKey : "ai-ml";
   const course = courseCatalog[resolvedCourseKey];
 
-  document.title = `${course.title} Syllabus | Synapse`;
+  document.title = `${course.title} Syllabus | Openzara Academy`;
   updateCourseSeo(course, resolvedCourseKey);
 
   root.innerHTML = `
@@ -713,7 +713,7 @@ function initPayment() {
       key: "rzp_test_SrFYeqYJM1Ef3u",
       amount: price * 100,
       currency: "INR",
-      name: "Synapse",
+      name: "Openzara Academy",
       description: "AI & ML 45-Day Internship",
       prefill: {
         name: userDetails.name || "",

@@ -1,17 +1,17 @@
 // Supabase Configuration
-var SYNAPSE_SUPABASE_URL = "https://mvvcwechakssylptnfey.supabase.co";
-var SYNAPSE_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im12dmN3ZWNoYWtzc3lscHRuZmV5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkyMDAzMDIsImV4cCI6MjA5NDc3NjMwMn0.lsEyFPrf5WaKAbxiSU5A5KpzzsOsy5HvQA8wQzwsZwg";
-var synapseSupabaseClient = null;
+var OPENZARA_SUPABASE_URL = "https://mvvcwechakssylptnfey.supabase.co";
+var OPENZARA_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im12dmN3ZWNoYWtzc3lscHRuZmV5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkyMDAzMDIsImV4cCI6MjA5NDc3NjMwMn0.lsEyFPrf5WaKAbxiSU5A5KpzzsOsy5HvQA8wQzwsZwg";
+var openzaraSupabaseClient = null;
 
 function getSupabaseClient() {
-  if (!synapseSupabaseClient && window.supabase?.createClient) {
-    synapseSupabaseClient = window.supabase.createClient(
-      SYNAPSE_SUPABASE_URL,
-      SYNAPSE_SUPABASE_ANON_KEY
+  if (!openzaraSupabaseClient && window.supabase?.createClient) {
+    openzaraSupabaseClient = window.supabase.createClient(
+      OPENZARA_SUPABASE_URL,
+      OPENZARA_SUPABASE_ANON_KEY
     );
   }
 
-  return synapseSupabaseClient;
+  return openzaraSupabaseClient;
 }
 
 function getClerkRedirectUrl(path = "dashboard.html") {
@@ -74,14 +74,14 @@ async function updateClerkEnrollment(details) {
   const user = window.Clerk?.user;
   if (!user?.update) return null;
 
-  const existingSynapse = user.unsafeMetadata?.synapse || {};
-  const purchases = Array.isArray(existingSynapse.purchases) ? existingSynapse.purchases : [];
+  const existingOpenzara = user.unsafeMetadata?.openzara || {};
+  const purchases = Array.isArray(existingOpenzara.purchases) ? existingOpenzara.purchases : [];
 
   return user.update({
     unsafeMetadata: {
       ...user.unsafeMetadata,
-      synapse: {
-        ...existingSynapse,
+      openzara: {
+        ...existingOpenzara,
         enrolled: true,
         latestCourse: details.course,
         latestPaymentId: details.paymentId,
@@ -109,15 +109,15 @@ async function saveEnrollment(details) {
     purchasedAt
   };
 
-  const purchases = JSON.parse(localStorage.getItem("synapse_purchases") || "[]");
+  const purchases = JSON.parse(localStorage.getItem("openzara_purchases") || "[]");
   purchases.push({
     title: enrollment.course,
     date: new Date(purchasedAt).toLocaleDateString("en-IN"),
     paymentId: enrollment.paymentId,
     amount: enrollment.amount
   });
-  localStorage.setItem("synapse_purchases", JSON.stringify(purchases));
-  localStorage.setItem("synapse_user", JSON.stringify({
+  localStorage.setItem("openzara_purchases", JSON.stringify(purchases));
+  localStorage.setItem("openzara_user", JSON.stringify({
     clerkId: enrollment.clerkId,
     email: enrollment.email,
     phone: enrollment.phone || enrollment.email,
@@ -171,13 +171,13 @@ function initClerkAuth() {
 
 async function signUp(phone, name, college) {
   await saveUserProfile({ phone, name, college });
-  localStorage.setItem("synapse_user", JSON.stringify({ phone, name, college }));
+  localStorage.setItem("openzara_user", JSON.stringify({ phone, name, college }));
 }
 
 async function signOut() {
   if (window.Clerk) await window.Clerk.signOut();
-  localStorage.removeItem("synapse_user");
-  localStorage.removeItem("synapse_purchases");
+  localStorage.removeItem("openzara_user");
+  localStorage.removeItem("openzara_purchases");
 }
 
 document.addEventListener("DOMContentLoaded", initClerkAuth);

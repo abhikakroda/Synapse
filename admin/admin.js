@@ -1,5 +1,5 @@
 const ACCESS_CODE = "sana";
-const ACCESS_KEY = "synapse_team_access";
+const ACCESS_KEY = "openzara_team_access";
 
 const state = {
   activeView: "leads",
@@ -10,6 +10,7 @@ const state = {
     workshops: [],
     courses: [],
     coupons: [],
+    resources: [],
     bin: []
   }
 };
@@ -113,10 +114,35 @@ const defaultWorkshops = [
 
 const defaultCoupons = [
   { code: "STAY10", course_slug: "ai-ml", type: "percent", discount: 10, usage_limit: 0, used_count: 0, active: true, expires_at: "", updated_at: "" },
-  { code: "SYNAPSE100", course_slug: "ai-ml", type: "flat", discount: 100, usage_limit: 0, used_count: 0, active: true, expires_at: "", updated_at: "" },
+  { code: "OPENZARA100", course_slug: "ai-ml", type: "flat", discount: 100, usage_limit: 0, used_count: 0, active: true, expires_at: "", updated_at: "" },
   { code: "EARLY50", course_slug: "ai-ml", type: "flat", discount: 50, usage_limit: 0, used_count: 0, active: true, expires_at: "", updated_at: "" },
   { code: "REFER100", course_slug: "ai-ml", type: "flat", discount: 100, usage_limit: 0, used_count: 0, active: true, expires_at: "", updated_at: "" },
   { code: "MANSOOR", course_slug: "ai-ml", type: "percent", discount: 100, usage_limit: 0, used_count: 0, active: true, expires_at: "", updated_at: "" }
+];
+
+const defaultResources = [
+  {
+    slug: "python-basics-pdf",
+    title: "Python Basics PDF",
+    description: "Syntax, loops, functions, lists, dictionaries and beginner practice questions.",
+    price: 99,
+    active: true,
+    cover_image: "",
+    page_images: [],
+    deleted: false,
+    updated_at: ""
+  },
+  {
+    slug: "ai-ml-roadmap-pdf",
+    title: "AI & ML Roadmap PDF",
+    description: "Machine learning flow, tools, project ideas and interview preparation notes.",
+    price: 149,
+    active: true,
+    cover_image: "",
+    page_images: [],
+    deleted: false,
+    updated_at: ""
+  }
 ];
 
 const views = {
@@ -142,22 +168,29 @@ const views = {
     title: "Workshops",
     subtitle: "Upcoming and past workshop content, YouTube links, and Google Meet links.",
     table: "admin_workshops",
-    localKey: "synapse_admin_workshops",
+    localKey: "openzara_admin_workshops",
     columns: ["id", "title", "host", "status", "time", "youtube_url", "google_meet_url", "updated_at", "actions"]
   },
   courses: {
     title: "Courses",
     subtitle: "Course copy, poster PNG, mentor details, pricing, and status.",
     table: "admin_courses",
-    localKey: "synapse_admin_courses",
+    localKey: "openzara_admin_courses",
     columns: ["slug", "title", "mentor", "status", "price", "old_price", "discount", "poster", "updated_at", "actions"]
   },
   coupons: {
     title: "Coupons",
     subtitle: "Discount codes for checkout. Usage limit 0 means unlimited.",
     table: "admin_coupons",
-    localKey: "synapse_admin_coupons",
+    localKey: "openzara_admin_coupons",
     columns: ["code", "course_slug", "type", "discount", "usage_limit", "used_count", "active", "expires_at", "actions"]
+  },
+  resources: {
+    title: "Resources",
+    subtitle: "Paid PDF resources rendered as page images for view-only reading.",
+    table: "admin_resources",
+    localKey: "openzara_admin_resources",
+    columns: ["slug", "title", "price", "active", "page_count", "updated_at", "actions"]
   },
   bin: {
     title: "Bin",
@@ -241,7 +274,7 @@ exportBtn.addEventListener("click", () => {
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
-  link.download = `synapse-${state.activeView}.csv`;
+  link.download = `openzara-${state.activeView}.csv`;
   link.click();
   URL.revokeObjectURL(url);
 });
@@ -275,6 +308,10 @@ document.querySelectorAll("[data-open-manager]").forEach((button) => {
     if (type === "coupon") {
       document.getElementById("couponStatus").textContent = "Blank coupon ready. Add code details and save.";
     }
+    if (type === "resource") {
+      resetResourceUpload();
+      document.getElementById("resourceStatus").textContent = "Blank resource ready. Upload a PDF and save.";
+    }
   });
 });
 
@@ -293,9 +330,19 @@ document.getElementById("couponForm").addEventListener("submit", (event) => {
   saveManagerRecord("coupons", readCouponForm(event.currentTarget), "couponStatus", "Coupon saved.");
 });
 
+document.getElementById("resourceForm").addEventListener("submit", (event) => {
+  event.preventDefault();
+  saveManagerRecord("resources", readResourceForm(event.currentTarget), "resourceStatus", "Resource saved.");
+});
+
 document.getElementById("deleteCouponBtn").addEventListener("click", () => {
   const code = document.querySelector('#couponForm [name="code"]').value.trim().toUpperCase();
   deleteCoupon(code);
+});
+
+document.getElementById("deleteResourceBtn").addEventListener("click", () => {
+  const slug = document.querySelector('#resourceForm [name="slug"]').value.trim();
+  deleteResource(slug);
 });
 
 document.getElementById("deleteCourseBtn").addEventListener("click", () => {
@@ -433,6 +480,80 @@ if (coursePosterFile && coursePosterStatus && coursePosterUrlField) {
   });
 }
 
+// ---------- PDF resource uploader ----------
+const resourcePdfFile = document.getElementById("resourcePdfFile");
+const resourcePdfPreview = document.getElementById("resourcePdfPreview");
+const resourceCoverPreview = document.getElementById("resourceCoverPreview");
+const resourcePdfPages = document.getElementById("resourcePdfPages");
+const resourceStatus = document.getElementById("resourceStatus");
+let pendingResourcePages = [];
+let pendingResourceCover = "";
+
+if (window.pdfjsLib) {
+  window.pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+}
+
+async function renderPdfToImages(file) {
+  if (!window.pdfjsLib) throw new Error("PDF viewer library did not load.");
+  const bytes = await file.arrayBuffer();
+  const pdf = await window.pdfjsLib.getDocument({ data: bytes }).promise;
+  const pages = [];
+
+  for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber += 1) {
+    const page = await pdf.getPage(pageNumber);
+    const viewport = page.getViewport({ scale: 1 });
+    const targetWidth = Math.min(1200, Math.max(760, Math.round(viewport.width * 1.6)));
+    const scale = targetWidth / viewport.width;
+    const scaledViewport = page.getViewport({ scale });
+    const canvas = document.createElement("canvas");
+    const context = canvas.getContext("2d", { alpha: false });
+    canvas.width = Math.floor(scaledViewport.width);
+    canvas.height = Math.floor(scaledViewport.height);
+    await page.render({ canvasContext: context, viewport: scaledViewport }).promise;
+    pages.push(canvas.toDataURL("image/webp", 0.86));
+  }
+
+  return pages;
+}
+
+function resetResourceUpload() {
+  pendingResourcePages = [];
+  pendingResourceCover = "";
+  if (resourcePdfFile) resourcePdfFile.value = "";
+  if (resourcePdfPreview) resourcePdfPreview.hidden = true;
+  if (resourceCoverPreview) resourceCoverPreview.removeAttribute("src");
+  if (resourcePdfPages) resourcePdfPages.textContent = "0 pages ready";
+  if (resourceStatus) {
+    resourceStatus.textContent = "";
+    resourceStatus.className = "form-status";
+  }
+}
+
+if (resourcePdfFile) {
+  resourcePdfFile.addEventListener("change", async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    resourceStatus.textContent = "Converting PDF pages to protected images...";
+    resourceStatus.className = "form-status";
+
+    try {
+      pendingResourcePages = await renderPdfToImages(file);
+      pendingResourceCover = pendingResourcePages[0] || "";
+      if (resourceCoverPreview) resourceCoverPreview.src = pendingResourceCover;
+      if (resourcePdfPreview) resourcePdfPreview.hidden = false;
+      if (resourcePdfPages) resourcePdfPages.textContent = `${pendingResourcePages.length} page${pendingResourcePages.length === 1 ? "" : "s"} ready`;
+      resourceStatus.textContent = "PDF converted. Save the resource to publish it.";
+      resourceStatus.classList.add("is-success");
+    } catch (error) {
+      pendingResourcePages = [];
+      pendingResourceCover = "";
+      resourceStatus.textContent = error?.message || "Could not convert PDF.";
+      resourceStatus.classList.add("is-error");
+    }
+  });
+}
+
 function csvCell(value) {
   const text = value == null ? "" : String(value);
   return `"${text.replaceAll('"', '""')}"`;
@@ -501,7 +622,7 @@ function deleteLocalRow(key, idKey, idValue) {
 async function syncLocalRows(viewKey, view, rows) {
   if (!view.localKey || !rows.length) return [];
 
-  const idKey = viewKey === "courses" ? "slug" : viewKey === "coupons" ? "code" : "id";
+  const idKey = getIdKey(viewKey);
   const client = getClient();
   if (!client) return rows;
 
@@ -516,11 +637,18 @@ function getFallbackRows(key) {
   if (key === "courses") return Object.values(defaultCourses);
   if (key === "workshops") return defaultWorkshops;
   if (key === "coupons") return defaultCoupons;
+  if (key === "resources") return defaultResources;
   return [];
 }
 
+function getIdKey(key) {
+  if (key === "courses" || key === "resources") return "slug";
+  if (key === "coupons") return "code";
+  return "id";
+}
+
 function mergeRows(baseRows, overrideRows, key) {
-  const idKey = key === "courses" ? "slug" : key === "coupons" ? "code" : "id";
+  const idKey = getIdKey(key);
   const map = new Map();
   baseRows.forEach((row) => {
     if (row && row[idKey] != null) map.set(row[idKey], row);
@@ -580,6 +708,24 @@ function fillCouponForm(coupon) {
 
   const status = document.getElementById("couponStatus");
   status.textContent = `${coupon.code} loaded. Edit, save, or delete it.`;
+  status.className = "form-status is-success";
+}
+
+function fillResourceForm(resource) {
+  const form = document.getElementById("resourceForm");
+  Object.entries(resource).forEach(([key, value]) => {
+    const field = form.querySelector(`[name="${key}"]`);
+    if (!field) return;
+    field.value = value == null ? "" : String(value);
+  });
+  pendingResourcePages = Array.isArray(resource.page_images) ? resource.page_images : [];
+  pendingResourceCover = resource.cover_image || pendingResourcePages[0] || "";
+  if (resourceCoverPreview && pendingResourceCover) resourceCoverPreview.src = pendingResourceCover;
+  if (resourcePdfPreview) resourcePdfPreview.hidden = !pendingResourceCover;
+  if (resourcePdfPages) resourcePdfPages.textContent = `${pendingResourcePages.length} page${pendingResourcePages.length === 1 ? "" : "s"} ready`;
+
+  const status = document.getElementById("resourceStatus");
+  status.textContent = `${resource.title} loaded. Upload a new PDF only if you want to replace pages.`;
   status.className = "form-status is-success";
 }
 
@@ -644,11 +790,19 @@ async function deleteWorkshop(id) {
   document.getElementById("workshopForm").reset();
 }
 
+async function deleteResource(slug) {
+  const status = document.getElementById("resourceStatus");
+  await softDeleteRecord("resources", "slug", slug, status, "Resource");
+  document.getElementById("resourceForm").reset();
+  resetResourceUpload();
+}
+
 async function restoreItem(type, idValue) {
   const map = {
     workshop: { viewKey: "workshops", idKey: "id" },
     course: { viewKey: "courses", idKey: "slug" },
-    coupon: { viewKey: "coupons", idKey: "code" }
+    coupon: { viewKey: "coupons", idKey: "code" },
+    resource: { viewKey: "resources", idKey: "slug" }
   };
   const cfg = map[type];
   if (!cfg || !idValue) return;
@@ -675,7 +829,7 @@ async function restoreItem(type, idValue) {
 async function saveManagerRecord(viewKey, record, statusId, successMessage) {
   const view = views[viewKey];
   const status = document.getElementById(statusId);
-  const idKey = viewKey === "courses" ? "slug" : viewKey === "coupons" ? "code" : "id";
+  const idKey = getIdKey(viewKey);
 
   status.textContent = "Saving...";
   status.className = "form-status";
@@ -763,6 +917,26 @@ function readCouponForm(form) {
   };
 }
 
+function readResourceForm(form) {
+  const data = Object.fromEntries(new FormData(form).entries());
+  const slug = cleanId(data.slug);
+  const existing = state.records.resources.find((item) => item.slug === slug) || {};
+  const pages = pendingResourcePages.length ? pendingResourcePages : (Array.isArray(existing.page_images) ? existing.page_images : []);
+  const cover = pendingResourceCover || existing.cover_image || pages[0] || "";
+
+  return {
+    slug,
+    title: clean(data.title),
+    description: clean(data.description),
+    price: Number(data.price || 0),
+    active: data.active === "true",
+    cover_image: cover,
+    page_images: pages,
+    page_count: pages.length,
+    deleted: false
+  };
+}
+
 function clean(value) {
   return String(value || "").trim();
 }
@@ -817,7 +991,8 @@ function computeBinRows() {
   const groups = [
     { type: "workshop", viewKey: "workshops", idKey: "id" },
     { type: "course", viewKey: "courses", idKey: "slug" },
-    { type: "coupon", viewKey: "coupons", idKey: "code" }
+    { type: "coupon", viewKey: "coupons", idKey: "code" },
+    { type: "resource", viewKey: "resources", idKey: "slug" }
   ];
   groups.forEach(({ type, viewKey, idKey }) => {
     (state.records[viewKey] || []).forEach((row) => {
@@ -876,6 +1051,15 @@ function renderCell(row, column, viewKey) {
       <div class="row-actions">
         <button class="ghost-btn" type="button" data-edit-coupon="${escapeAttr(row.code)}">Edit</button>
         <button class="danger-btn" type="button" data-delete-coupon="${escapeAttr(row.code)}">Delete</button>
+      </div>
+    `;
+  }
+
+  if (column === "actions" && viewKey === "resources") {
+    return `
+      <div class="row-actions">
+        <button class="ghost-btn" type="button" data-edit-resource="${escapeAttr(row.slug)}">Edit</button>
+        <button class="danger-btn" type="button" data-delete-resource="${escapeAttr(row.slug)}">Delete</button>
       </div>
     `;
   }
@@ -964,6 +1148,23 @@ tableBody.addEventListener("click", (event) => {
     const code = deleteButton.dataset.deleteCoupon;
     if (code && confirm(`Move coupon "${code}" to bin? You can restore it from the Bin tab.`)) {
       deleteCoupon(code);
+    }
+    return;
+  }
+
+  const editResourceButton = event.target.closest("[data-edit-resource]");
+  if (editResourceButton) {
+    openManagerPanel("resource");
+    const resource = state.records.resources.find((item) => item.slug === editResourceButton.dataset.editResource);
+    if (resource) fillResourceForm(resource);
+    return;
+  }
+
+  const deleteResourceButton = event.target.closest("[data-delete-resource]");
+  if (deleteResourceButton) {
+    const slug = deleteResourceButton.dataset.deleteResource;
+    if (slug && confirm(`Move resource "${slug}" to bin? You can restore it from the Bin tab.`)) {
+      deleteResource(slug);
     }
     return;
   }

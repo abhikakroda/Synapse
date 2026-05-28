@@ -20,11 +20,11 @@ const updateSeoUrls = () => {
   document.querySelector('meta[property="og:url"]')?.setAttribute("content", pageUrl);
 
   if (ogImage) {
-    ogImage.setAttribute("content", `${origin}/assets/synopse-concept.png`);
+    ogImage.setAttribute("content", `${origin}/assets/openzara-concept.png`);
   }
 
   if (twitterImage) {
-    twitterImage.setAttribute("content", `${origin}/assets/synopse-concept.png`);
+    twitterImage.setAttribute("content", `${origin}/assets/openzara-concept.png`);
   }
 
   const schema = {
@@ -33,16 +33,16 @@ const updateSeoUrls = () => {
       {
         "@type": "Organization",
         "@id": `${origin}/#organization`,
-        name: "Synapse",
+        name: "Openzara Academy",
         url: pageUrl,
-        logo: `${origin}/assets/synopse-concept.png`,
+        logo: `${origin}/assets/openzara-concept.png`,
         description:
-          "Synapse provides internship and career acceleration programs for Indian college students."
+          "Openzara Academy provides internship and career acceleration programs for Indian college students."
       },
       {
         "@type": "WebSite",
         "@id": `${origin}/#website`,
-        name: "Synapse",
+        name: "Openzara Academy",
         url: pageUrl,
         publisher: {
           "@id": `${origin}/#organization`
@@ -51,7 +51,7 @@ const updateSeoUrls = () => {
       },
       {
         "@type": "ItemList",
-        name: "Synapse career tracks",
+        name: "Openzara Academy career tracks",
         itemListElement: [
           ["AI & ML Internship", "course.html?course=ai-ml"],
           ["Cybersecurity Course", "course.html?course=cybersecurity"]
@@ -112,7 +112,7 @@ leadForm?.addEventListener("submit", (event) => {
 
   submitToSheet({ name, phone, program, college, message });
 
-  statusMessage.textContent = `Thanks ${name}. Your enquiry for ${program} is ready to send to the Synapse team.`;
+  statusMessage.textContent = `Thanks ${name}. Your enquiry for ${program} is ready to send to the Openzara Academy team.`;
   leadForm.reset();
   fireConfetti();
 });

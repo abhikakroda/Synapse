@@ -1407,7 +1407,7 @@ body {
   }
 }
 
-/* Sarvam-inspired visual direction for Synapse */
+/* Sarvam-inspired visual direction for Openzara Academy */
 :root {
   --ink: #222331;
   --muted: #565969;
@@ -2550,6 +2550,201 @@ body {
 .resource-card a {
   color: #343aa4;
   font-weight: 850;
+}
+
+.resource-page-hero {
+  padding-top: clamp(120px, 14vh, 170px);
+}
+
+.resource-page-hero h1 {
+  max-width: 900px;
+  margin: 0 auto;
+  color: #232333;
+  font-size: clamp(42px, 6vw, 82px);
+  line-height: 0.98;
+  text-align: center;
+}
+
+.resource-shop-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 22px;
+  max-width: 1160px;
+  margin: 0 auto;
+}
+
+.resource-shop-card {
+  display: grid;
+  grid-template-columns: minmax(140px, 220px) 1fr;
+  gap: 22px;
+  align-items: stretch;
+  padding: clamp(16px, 2vw, 24px);
+  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid rgba(32, 32, 42, 0.08);
+  border-radius: 24px;
+  box-shadow: 0 22px 60px rgba(36, 44, 65, 0.1);
+}
+
+.resource-shop-card figure {
+  margin: 0;
+}
+
+.resource-shop-card figure > img {
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
+  border-radius: 18px;
+  box-shadow: 0 16px 42px rgba(30, 36, 54, 0.16);
+  pointer-events: none;
+  user-select: none;
+}
+
+.resource-shop-card h2 {
+  margin: 0;
+  color: #2d2d38;
+  font-size: clamp(26px, 2.4vw, 38px);
+  line-height: 1.05;
+}
+
+.resource-shop-card p {
+  margin: 12px 0 18px;
+  color: #747474;
+  font-size: 16px;
+  line-height: 1.55;
+}
+
+.resource-shop-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 18px;
+}
+
+.resource-shop-meta span,
+.resource-card-actions small {
+  color: #6d7280;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.resource-shop-meta strong {
+  color: #343aa4;
+  font-size: 24px;
+}
+
+.resource-card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+
+.resource-card-actions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.secure-resource-body {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.secure-viewer-header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px clamp(16px, 4vw, 42px);
+  background: rgba(255, 255, 255, 0.92);
+  border-bottom: 1px solid rgba(32, 32, 42, 0.08);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.secure-viewer-header > span {
+  color: #343aa4;
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.secure-viewer {
+  width: min(1000px, calc(100% - 24px));
+  margin: 0 auto;
+  padding: clamp(24px, 4vw, 54px) 0 80px;
+}
+
+.secure-viewer-title {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 24px;
+}
+
+.secure-viewer-title h1 {
+  margin: 0;
+  color: #24242a;
+  font-size: clamp(30px, 4vw, 58px);
+  line-height: 1;
+}
+
+.secure-pages {
+  display: grid;
+  gap: clamp(14px, 2vw, 24px);
+}
+
+.secure-page {
+  position: relative;
+  margin: 0;
+  padding: clamp(8px, 1.4vw, 14px);
+  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid rgba(32, 32, 42, 0.08);
+  border-radius: 18px;
+  box-shadow: 0 24px 70px rgba(31, 41, 55, 0.12);
+  overflow: hidden;
+}
+
+.secure-page::after {
+  content: "OPENZARA VIEW ONLY";
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: rgba(52, 58, 164, 0.08);
+  font-size: clamp(28px, 8vw, 82px);
+  font-weight: 900;
+  transform: rotate(-22deg);
+  pointer-events: none;
+}
+
+.secure-page img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 10px;
+  pointer-events: none;
+  -webkit-user-drag: none;
+  user-select: none;
+}
+
+.secure-page figcaption {
+  margin-top: 8px;
+  color: #6d7280;
+  font-size: 12px;
+  font-weight: 800;
+  text-align: center;
+}
+
+@media print {
+  body.secure-resource-body {
+    display: none !important;
+  }
 }
 
 .resource-art {
@@ -5402,5 +5597,18 @@ body {
 
   .resources-panel {
     grid-template-columns: 1fr !important;
+  }
+
+  .resource-shop-grid,
+  .resource-shop-card {
+    grid-template-columns: 1fr !important;
+  }
+
+  .resource-shop-card figure {
+    max-width: 260px;
+  }
+
+  .secure-viewer-title {
+    display: grid;
   }
 }

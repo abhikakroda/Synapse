@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>My Batch | Synapse</title>
+    <title>My Batch | Openzara Academy</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -11,7 +11,7 @@
   </head>
   <body>
     <header class="site-header">
-      <a class="brand" href="index.html" aria-label="Synapse home"><span>Synapse</span></a>
+      <a class="brand" href="index.html" aria-label="Openzara Academy home"><span>Openzara Academy</span></a>
       <button class="menu-toggle" type="button" aria-label="Open navigation" aria-expanded="false">
         <span></span><span></span><span></span>
       </button>
@@ -118,8 +118,8 @@
 
           <h2 class="dash-section-title">Resources</h2>
           <div class="dash-resources">
-            <a href="#" class="resource-link">📄 Python Basics PDF</a>
-            <a href="#" class="resource-link">📝 AI & ML Roadmap</a>
+            <a href="resources.html" class="resource-link">📄 Python Basics PDF</a>
+            <a href="resources.html" class="resource-link">📝 AI & ML Roadmap</a>
             <a href="#" class="resource-link">💬 WhatsApp Group</a>
             <a href="#" class="resource-link">🎥 Recorded Classes</a>
           </div>
@@ -179,7 +179,7 @@
             <div class="dash-gradient-card grad-purple">
               <strong>💼 Job Board</strong>
               <p>Curated AI/ML internships</p>
-              <a class="btn btn-light" href="https://wa.me/918803250878?text=Hi%20Synapse%2C%20share%20job%20board%20links" target="_blank">View Jobs</a>
+              <a class="btn btn-light" href="https://wa.me/918803250878?text=Hi%20Openzara%20Academy%2C%20share%20job%20board%20links" target="_blank">View Jobs</a>
             </div>
             <div class="dash-gradient-card grad-blue">
               <strong>💬 LinkedIn Templates</strong>
@@ -203,12 +203,12 @@
             <div class="dash-gradient-card grad-orange">
               <strong>🎁 Refer Friends</strong>
               <p>Share & earn ₹100 off</p>
-              <a class="btn btn-light" href="https://wa.me/?text=Join%20Synapse%20AI%20%26%20ML%20internship%20at%20₹999%20→%20https://synapse-academy.vercel.app/course.html?course=ai-ml" target="_blank">Share Link</a>
+              <a class="btn btn-light" href="https://wa.me/?text=Join%20Openzara%20Academy%20AI%20%26%20ML%20internship%20at%20₹999%20→%20https://openzara-academy.vercel.app/course.html?course=ai-ml" target="_blank">Share Link</a>
             </div>
             <div class="dash-gradient-card grad-purple">
               <strong>💬 Support</strong>
               <p>Chat with us on WhatsApp</p>
-              <a class="btn btn-light" href="https://wa.me/918803250878?text=Hi%20Synapse%2C%20I%20need%20help%20with%20my%20batch" target="_blank">Get Help</a>
+              <a class="btn btn-light" href="https://wa.me/918803250878?text=Hi%20Openzara%20Academy%2C%20I%20need%20help%20with%20my%20batch" target="_blank">Get Help</a>
             </div>
           </div>
         </div>
@@ -217,7 +217,7 @@
 
     <footer class="site-footer">
       <div>
-        <a class="brand" href="index.html"><span>Synapse</span></a>
+        <a class="brand" href="index.html"><span>Openzara Academy</span></a>
         <p>Internship + career acceleration for ambitious students.</p>
       </div>
       <div class="footer-links">
@@ -271,10 +271,10 @@
         if (user) {
           name = user.firstName || user.fullName || "";
           phone = user.primaryPhoneNumber?.phoneNumber || user.primaryEmailAddress?.emailAddress || "";
-          localStorage.setItem("synapse_user", JSON.stringify({ phone, name }));
+          localStorage.setItem("openzara_user", JSON.stringify({ phone, name }));
         } else {
           // Fallback to localStorage
-          const local = JSON.parse(localStorage.getItem("synapse_user") || "null");
+          const local = JSON.parse(localStorage.getItem("openzara_user") || "null");
           if (!local) { window.location.href = "index.html"; return; }
           name = local.name;
           phone = local.phone;
@@ -292,7 +292,7 @@
         let hasPurchases = false;
 
         // Check localStorage first (instant)
-        const local = JSON.parse(localStorage.getItem("synapse_purchases") || "[]");
+        const local = JSON.parse(localStorage.getItem("openzara_purchases") || "[]");
         if (local.length) {
           hasPurchases = true;
           grid.innerHTML = local.map(p => `
@@ -332,8 +332,8 @@
       document.getElementById("logoutBtn").addEventListener("click", async (e) => {
         e.preventDefault();
         await window.Clerk?.signOut();
-        localStorage.removeItem("synapse_user");
-        localStorage.removeItem("synapse_purchases");
+        localStorage.removeItem("openzara_user");
+        localStorage.removeItem("openzara_purchases");
         window.location.href = "index.html";
       });
 
@@ -343,7 +343,7 @@
         const pi = document.getElementById("profileInfo");
         const pay = document.getElementById("paymentInfo");
         if (pi) pi.textContent = u ? (u.fullName || u.primaryEmailAddress?.emailAddress || "Student") : "Student";
-        const purchases = JSON.parse(localStorage.getItem("synapse_purchases") || "[]");
+        const purchases = JSON.parse(localStorage.getItem("openzara_purchases") || "[]");
         if (pay) pay.textContent = purchases.length ? `${purchases.length} course(s) purchased` : "No purchases yet";
       }, 2000);
     </script>

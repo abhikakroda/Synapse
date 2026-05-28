@@ -5,19 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="robots" content="noindex, nofollow" />
     <meta name="theme-color" content="#111827" />
-    <title>Synapse Team Admin</title>
+    <title>Openzara Academy Team Admin</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="admin.css" />
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   </head>
   <body>
     <main class="admin-shell">
       <section class="access-panel" id="accessPanel">
         <div>
           <p class="eyebrow">Private portal</p>
-          <h1>Synapse Team</h1>
+          <h1>Openzara Academy Team</h1>
           <p>Admin workspace for leads, purchases, student records, workshops, courses, and coupons.</p>
         </div>
         <form class="access-form" id="accessForm">
@@ -32,9 +33,9 @@
 
       <section class="dashboard" id="dashboard" hidden>
         <div class="team-topbar">
-          <a class="brand" href="../index.html" aria-label="Synapse home">
+          <a class="brand" href="../index.html" aria-label="Openzara Academy home">
             <span class="brand-mark">S</span>
-            <span>Synapse</span>
+            <span>Openzara Academy</span>
           </a>
           <nav class="team-nav" aria-label="Admin navigation">
             <a href="../index.html">Home</a>
@@ -52,8 +53,8 @@
         <header class="admin-header">
           <div>
             <p class="eyebrow">Admin dashboard</p>
-            <h1>Synapse Team</h1>
-            <p>Same Synapse academy workspace, with controls for course details, workshops, coupons, and student records.</p>
+            <h1>Openzara Academy Team</h1>
+            <p>Same Openzara Academy workspace, with controls for course details, workshops, coupons, and student records.</p>
           </div>
         </header>
 
@@ -92,6 +93,11 @@
               <span>Coupon</span>
               <strong>Add coupon</strong>
               <small>Create and manage discount codes.</small>
+            </button>
+            <button class="manager-option-card" type="button" data-open-manager="resource">
+              <span>PDF</span>
+              <strong>Add resource</strong>
+              <small>Upload PDF and sell as protected image viewer.</small>
             </button>
           </div>
 
@@ -178,7 +184,7 @@
               <strong>Create offer code</strong>
             </div>
             <div class="form-grid">
-              <label>Code<input name="code" placeholder="SYNAPSE100" required /></label>
+              <label>Code<input name="code" placeholder="OPENZARA100" required /></label>
               <label>Course slug<input name="course_slug" placeholder="ai-ml" /></label>
               <label>Type
                 <select name="type">
@@ -203,6 +209,38 @@
             </div>
             <p class="form-status" id="couponStatus"></p>
           </form>
+
+          <form class="manager-card compact-manager" id="resourceForm" data-manager-panel="resource" hidden>
+            <div class="manager-title">
+              <span>Resource</span>
+              <strong>Upload paid PDF resource</strong>
+            </div>
+            <div class="form-grid">
+              <label>Resource slug<input name="slug" placeholder="python-basics-pdf" required /></label>
+              <label>Title<input name="title" placeholder="Python Basics PDF" required /></label>
+              <label>Price<input name="price" type="number" min="0" placeholder="99" required /></label>
+              <label>Active
+                <select name="active">
+                  <option value="true">Active</option>
+                  <option value="false">Hidden</option>
+                </select>
+              </label>
+              <label class="wide">Description<textarea name="description" placeholder="What students get from this PDF"></textarea></label>
+              <label class="wide">Upload PDF<input id="resourcePdfFile" type="file" accept="application/pdf" /></label>
+            </div>
+            <div class="pdf-upload-preview" id="resourcePdfPreview" hidden>
+              <img id="resourceCoverPreview" alt="PDF cover preview" />
+              <div>
+                <strong id="resourcePdfPages">0 pages ready</strong>
+                <p>Pages are saved as images for view-only reading.</p>
+              </div>
+            </div>
+            <div class="form-actions">
+              <button class="dark-btn" type="submit">Save resource</button>
+              <button class="danger-btn" id="deleteResourceBtn" type="button">Delete resource</button>
+            </div>
+            <p class="form-status" id="resourceStatus"></p>
+          </form>
         </section>
 
         <section class="toolbar" id="records">
@@ -213,6 +251,7 @@
             <button class="tab" data-view="workshops" type="button">Workshops</button>
             <button class="tab" data-view="courses" type="button">Courses</button>
             <button class="tab" data-view="coupons" type="button">Coupons</button>
+            <button class="tab" data-view="resources" type="button">Resources</button>
             <button class="tab" data-view="bin" type="button">Bin</button>
           </div>
           <div class="table-tools">
