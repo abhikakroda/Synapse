@@ -402,6 +402,7 @@ const renderCourseCard = ([key, item]) => `
     <div class="all-course-body">
       <h2>${item.title}</h2>
       <span class="course-status-badge ${item.status.toLowerCase().includes('live') || item.status.toLowerCase().includes('ongoing') ? 'is-live' : ''}">${item.status}</span>
+      <p>${item.summary.length > 120 ? item.summary.slice(0, 120) + '…' : item.summary}</p>
       <div class="course-price-row">
         ${renderPrice(item)}
       </div>

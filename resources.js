@@ -171,6 +171,7 @@ function renderResourceCard(resource) {
       <figure>${resourceArt(resource)}</figure>
       <div>
         <h2>${escapeHtml(resource.title)}</h2>
+        <p>${escapeHtml(resource.description || "")}</p>
         <div class="resource-shop-meta">
           <strong data-resource-price="${slug}">${price <= 0 ? "Free" : formatInr(price)}</strong>
           ${purchased ? "<small>Purchased</small>" : disabled ? "<small>Coming soon</small>" : ""}
