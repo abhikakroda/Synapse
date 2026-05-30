@@ -15,6 +15,9 @@ const defaultResources = [
     price: 99,
     active: true,
     cover_image: "",
+    format: "PDF study guide",
+    page_count: "Beginner notes",
+    topics: ["Python syntax", "Loops & functions", "Practice questions"],
     page_images: []
   },
   {
@@ -24,6 +27,9 @@ const defaultResources = [
     price: 149,
     active: true,
     cover_image: "",
+    format: "PDF roadmap",
+    page_count: "Career guide",
+    topics: ["Learning path", "Project ideas", "Interview prep"],
     page_images: []
   }
 ];
@@ -154,7 +160,14 @@ function resourceArt(resource) {
   if (resource.cover_image) {
     return `<img src="${escapeHtml(resource.cover_image)}" alt="${escapeHtml(resource.title)} cover" loading="lazy" draggable="false" />`;
   }
-  return `<div class="resource-art ai-art">${escapeHtml(resource.title.slice(0, 2).toUpperCase())}</div>`;
+  const initials = escapeHtml(resource.title.slice(0, 2).toUpperCase());
+  return `
+    <div class="resource-art resource-cover-placeholder">
+      <span class="resource-cover-brand">Openzara Notes</span>
+      <strong>${initials}</strong>
+      <small>${escapeHtml(resource.title)}</small>
+    </div>
+  `;
 }
 
 function renderResourceCard(resource) {
@@ -162,6 +175,9 @@ function renderResourceCard(resource) {
   const price = Number(resource.price || 0);
   const disabled = !Array.isArray(resource.page_images) || resource.page_images.length === 0;
   const slug = escapeHtml(resource.slug);
+  const topics = Array.isArray(resource.topics)
+    ? resource.topics
+    : String(resource.topics || "").split("\n").map((item) => item.trim()).filter(Boolean);
   const action = purchased
     ? `<a class="btn btn-primary" href="resource-viewer.html?resource=${encodeURIComponent(resource.slug)}">View PDF</a>`
     : `<button class="btn btn-primary" type="button" data-buy-resource="${slug}" ${disabled ? "disabled" : ""}>Buy ${formatInr(price)}</button>`;
@@ -170,14 +186,29 @@ function renderResourceCard(resource) {
     <article class="resource-shop-card" id="resource-${slug}" data-resource-card="${slug}">
       <figure>${resourceArt(resource)}</figure>
       <div>
+        <span class="resource-type">${escapeHtml(resource.format || "PDF resource")}</span>
         <h2>${escapeHtml(resource.title)}</h2>
         <p>${escapeHtml(resource.description || "")}</p>
+        <div class="resource-topic-list">
+          ${topics.slice(0, 4).map((topic) => `<span>${escapeHtml(topic)}</span>`).join("")}
+        </div>
+        <div class="resource-detail-row">
+          <span>${escapeHtml(resource.page_count || "Online notes")}</span>
+          <span>Secure online viewing</span>
+        </div>
         <div class="resource-shop-meta">
           <strong data-resource-price="${slug}">${price <= 0 ? "Free" : formatInr(price)}</strong>
           ${purchased ? "<small>Purchased</small>" : disabled ? "<small>Coming soon</small>" : ""}
         </div>
+        ${!purchased && !disabled ? `
+        <div class="resource-coupon-row">
+          <input type="text" data-resource-coupon-input="${slug}" placeholder="Coupon code" aria-label="Coupon code for ${escapeHtml(resource.title)}" />
+          <button class="btn btn-secondary" type="button" data-apply-resource-coupon="${slug}">Apply</button>
+        </div>
+        <p class="resource-coupon-status" data-resource-coupon-status="${slug}" aria-live="polite"></p>` : ""}
         <div class="resource-card-actions">
           ${action}
+          <button class="btn btn-secondary resource-share-btn" type="button" data-share-resource="${slug}">Share</button>
         </div>
       </div>
     </article>

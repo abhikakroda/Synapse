@@ -400,13 +400,26 @@ const renderCourseCard = ([key, item]) => `
       <img src="${item.poster}" alt="${item.title} course poster" />
     </figure>
     <div class="all-course-body">
-      <h2>${item.title}</h2>
-      <span class="course-status-badge ${item.status.toLowerCase().includes('live') || item.status.toLowerCase().includes('ongoing') ? 'is-live' : ''}">${item.status}</span>
-      <p>${item.summary.length > 120 ? item.summary.slice(0, 120) + '…' : item.summary}</p>
+      <div class="course-card-heading">
+        <div>
+          <h2>${item.title}</h2>
+          <span class="course-status-badge ${item.status.toLowerCase().includes('live') || item.status.toLowerCase().includes('ongoing') ? 'is-live' : ''}">${item.status}</span>
+        </div>
+        <span class="course-card-mentor">Mentor: <strong>${item.mentor}</strong></span>
+      </div>
+      <p>${item.summary}</p>
+      <div class="course-meta-row">
+        ${item.duration ? `<span>${item.duration}</span>` : ""}
+        ${item.mode ? `<span>${item.mode}</span>` : ""}
+        ${item.certificate ? `<span>Certificate included</span>` : ""}
+      </div>
+      <div class="course-card-highlights">
+        ${(item.highlights || []).slice(0, 5).map((highlight) => `<span>${highlight}</span>`).join("")}
+      </div>
       <div class="course-price-row">
         ${renderPrice(item)}
       </div>
-      <a class="btn btn-primary see-more-btn" href="course.html?course=${key}">See More</a>
+      <a class="btn btn-primary see-more-btn" href="course.html?course=${key}">View course details</a>
     </div>
   </article>
 `;
@@ -420,16 +433,22 @@ if (!courseKey) {
 
   root.innerHTML = `
     <section class="all-courses-hero section-pad">
-      <p class="section-label">Course</p>
-      <h1>All courses. See more for full details.</h1>
+      <h1>Learn skills that move your career forward.</h1>
       <p>
-        Choose an Openzara course, compare pricing,
-        and open the full course page before enrolling.
+        Explore practical, mentor-led programs with a clear syllabus,
+        portfolio projects, pricing, and batch details before you enroll.
       </p>
     </section>
 
     <section class="all-courses-list section-pad">
       ${Object.entries(courseCatalog).map(renderCourseCard).join("")}
+    </section>
+
+    <section class="course-catalog-value section-pad" aria-label="What every Openzara course includes">
+      <article><strong>Structured syllabus</strong><span>Know exactly what you will learn each week.</span></article>
+      <article><strong>Portfolio projects</strong><span>Build work you can discuss in interviews.</span></article>
+      <article><strong>Mentor guidance</strong><span>Get direction while learning practical skills.</span></article>
+      <article><strong>Completion certificate</strong><span>Add a verified learning outcome to your profile.</span></article>
     </section>
   `;
 } else {
