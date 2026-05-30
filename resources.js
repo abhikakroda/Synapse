@@ -1,5 +1,6 @@
 const RESOURCE_PURCHASE_KEY = "openzara_resource_purchases";
 const OFFICIAL_SITE_ORIGIN = "https://openzara.online";
+const RESOURCE_LIST_COLUMNS = "slug,title,description,price,active,deleted,cover_image,page_count,updated_at";
 const defaultResourceCoupons = {
   "OPENZARA100": { discount: 100, type: "flat", target: "all" },
   "STAY10": { discount: 10, type: "percent", target: "all" }
@@ -93,12 +94,19 @@ function mergeResources(remoteRows) {
   return Array.from(map.values()).filter((item) => item.active !== false && !item.deleted);
 }
 
-async function loadResources() {
+async function loadResources({ includePages = false, slug = "" } = {}) {
   const client = typeof getSupabaseClient === "function" ? getSupabaseClient() : null;
   if (!client) return defaultResources;
 
   try {
-    const { data, error } = await client.from("admin_resources").select("*").eq("active", true);
+    let query = client
+      .from("admin_resources")
+      .select(includePages ? "*" : RESOURCE_LIST_COLUMNS)
+      .eq("active", true)
+      .eq("deleted", false);
+    if (slug) query = query.eq("slug", slug);
+
+    const { data, error } = await query;
     if (error) return defaultResources;
     return mergeResources(data || []);
   } catch {
@@ -173,7 +181,7 @@ function resourceArt(resource) {
 function renderResourceCard(resource) {
   const purchased = hasResourceAccess(resource);
   const price = Number(resource.price || 0);
-  const disabled = !Array.isArray(resource.page_images) || resource.page_images.length === 0;
+  const disabled = Number(resource.page_count || 0) <= 0;
   const slug = escapeHtml(resource.slug);
   const topics = Array.isArray(resource.topics)
     ? resource.topics
@@ -443,7 +451,7 @@ async function initResourceViewer() {
 
   blockViewerShortcuts();
   const slug = new URLSearchParams(window.location.search).get("resource");
-  const resources = await loadResources();
+  const resources = await loadResources({ includePages: true, slug });
   const resource = resources.find((item) => item.slug === slug);
 
   if (!resource) {
