@@ -16,4 +16,4 @@ Allow: /
 User-agent: PerplexityBot
 Allow: /
 
-Sitemap: https://openzara.online/sitemap.xml
+Sitemap: https://www.openzara.online/sitemap.xml

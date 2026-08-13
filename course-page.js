@@ -81,7 +81,7 @@ let courseCatalog = {
   }
 };
 
-const OFFICIAL_SITE_ORIGIN = "https://openzara.online";
+const OFFICIAL_SITE_ORIGIN = "https://www.openzara.online";
 const params = new URLSearchParams(window.location.search);
 const courseKey = params.get("course");
 const root = document.querySelector("#courseRoot");

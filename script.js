@@ -4,7 +4,7 @@ const filterButtons = document.querySelectorAll("[data-filter]");
 const programCards = document.querySelectorAll(".program-card");
 const leadForm = document.querySelector("#leadForm");
 const statusMessage = document.querySelector(".form-status");
-const OFFICIAL_SITE_ORIGIN = "https://openzara.online";
+const OFFICIAL_SITE_ORIGIN = "https://www.openzara.online";
 
 const updateSeoUrls = () => {
   if (window.location.protocol === "file:") {

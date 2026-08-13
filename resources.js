@@ -1,5 +1,5 @@
 const RESOURCE_PURCHASE_KEY = "openzara_resource_purchases";
-const OFFICIAL_SITE_ORIGIN = "https://openzara.online";
+const OFFICIAL_SITE_ORIGIN = "https://www.openzara.online";
 const RESOURCE_LIST_COLUMNS = "slug,title,description,price,active,deleted,cover_image,page_count,updated_at";
 const defaultResourceCoupons = {
   "OPENZARA100": { discount: 100, type: "flat", target: "all" },
